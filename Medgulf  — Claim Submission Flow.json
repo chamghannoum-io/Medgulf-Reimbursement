@@ -1,0 +1,1029 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "medgulf-claim-init",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b40db68d-7003-440a-82ec-c5bcf60aba8c",
+      "name": "Claim Init Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        144,
+        1360
+      ],
+      "webhookId": "ec06cdef-f64c-41d4-82c9-09d1abdcfae0",
+      "notes": "Initial trigger. Receives: { user_id, policy_number, language }. Returns benefit_type_selector widget."
+    },
+    {
+      "parameters": {
+        "jsCode": "// TODO: Replace dummy dependents with real API call to fetch policy dependents\n// Expected shape per dependent: { id: String, name: String, relation: 'self'|'spouse'|'child' }\nconst dependents = [\n  { id: 'SELF',    name: 'Ahmad Al-Mansouri',  relation: 'self'   },\n  { id: 'DEP-001', name: 'Fatima Al-Mansouri', relation: 'spouse' },\n  { id: 'DEP-002', name: 'Omar Al-Mansouri',   relation: 'child'  }\n];\n\nreturn [{\n  json: {\n    type: 'benefit_type_selector',\n    message: 'To start your claim, please select your benefit type.',\n    dependents,\n    benefit_types: [\n      { value: 'Optical',       label: 'Optical' },\n      { value: 'Outpatient',    label: 'Out Patient' },\n      { value: 'Dental',        label: 'Dental' },\n      { value: 'Inpatient',     label: 'In Patient' },\n      { value: 'Autism',        label: 'Autism' },\n      { value: 'ADHD',          label: 'ADHD' },\n      { value: 'Physiotherapy', label: 'Physiotherapy' },\n      { value: 'Psychotherapy', label: 'Psychotherapy' }\n    ],\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      },
+      "id": "127d6897-5e1f-43c6-b32d-edd10354e32a",
+      "name": "Build Benefit Selector",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "5998467f-126f-49a9-a178-e8da17cb3bb6",
+      "name": "Respond — Benefit Selector",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        1120
+      ],
+      "notes": "Responds to the initial POST with the benefit_type_selector JSON. Execution continues to Wait node."
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ad7098f0-6bb8-4497-84cb-cdc61d7d486c",
+      "name": "Wait — Benefit Type",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        1120
+      ],
+      "webhookId": "f927a89f-3191-46da-af9c-d02ac6a73eff",
+      "notes": "Pauses execution. Frontend POSTs { benefit_type: 'Dental' } to resumeUrl (webhook-waiting/<exec-id>) to resume."
+    },
+    {
+      "parameters": {
+        "jsCode": "const LABELS = {\n  en: {\n    'Invoice':                { label: 'Invoice',                description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n    'Payment Proof':          { label: 'Payment Proof',          description: 'Proof of payment completion such as a receipt or bank transfer.' },\n    'Refraction Test Result': { label: 'Refraction Test Result', description: 'A test that determines the strength of glasses or lenses needed to correct vision.' },\n    'Receipt':                { label: 'Receipt',                description: 'A document showing the amount paid and the services covered by the payment.' },\n    'Prescription':           { label: 'Prescription',           description: 'A document from a doctor listing medicines and how to use them.' },\n    'Medical Report':         { label: 'Medical Report',         description: 'A document explaining the patient health condition, diagnosis, and treatment.' },\n    'Rad Report':             { label: 'Rad Report',             description: 'A radiological report for imaging tests such as X-rays or ultrasounds.' },\n    'Lab Result':             { label: 'Lab Result',             description: 'A report showing the outcomes of medical tests or laboratory exams.' },\n    'Itemized Invoice':       { label: 'Itemized Invoice',       description: 'An invoice that breaks down all services with their prices and quantities.' },\n    'Discharge Summary':      { label: 'Discharge Summary',      description: 'A report written when a patient leaves the hospital.' },\n    'Prior Approval':         { label: 'Prior Approval',         description: 'Permission from the insurance company before receiving specific treatment.' },\n    'Operation Note':         { label: 'Operation Note',         description: 'A note written by the surgeon after a surgical procedure.' },\n    'Attendance Sheet':       { label: 'Attendance Sheet',       description: 'A record of attendance for medical sessions or appointments.' },\n    'Schedule Of Service':    { label: 'Schedule Of Service',    description: 'A list of treatment sessions with dates and prices.' }\n  },\n  ar: {\n    'Invoice':                { label: 'فاتورة',                 description: 'تفاصيل المبلغ المستحق مقابل الخدمات أو الأدوية المقدمة للمريض.' },\n    'Payment Proof':          { label: 'إثبات الدفع',            description: 'ما يثبت اكتمال الدفع المطلوب كإيصال أو تحويل بنكي.' },\n    'Refraction Test Result': { label: 'نتيجة اختبار الانكسار', description: 'فحص يحدد قوة النظارات أو العدسات اللازمة لتصحيح الرؤية.' },\n    'Receipt':                { label: 'إيصال',                  description: 'وثيقة تُظهر المبلغ المدفوع والخدمات التي يغطيها الدفع.' },\n    'Prescription':           { label: 'وصفة طبية',              description: 'وثيقة من الطبيب تتضمن الأدوية الموصوفة وطريقة استخدامها.' },\n    'Medical Report':         { label: 'تقرير طبي',              description: 'وثيقة تشرح الحالة الصحية للمريض والتشخيص والعلاج.' },\n    'Rad Report':             { label: 'تقرير أشعة',             description: 'تقرير يشرح نتائج فحوصات التصوير كالأشعة السينية أو الموجات فوق الصوتية.' },\n    'Lab Result':             { label: 'نتيجة المختبر',          description: 'تقرير يُظهر نتائج الفحوصات الطبية أو التحاليل المخبرية.' },\n    'Itemized Invoice':       { label: 'فاتورة مفصّلة',          description: 'فاتورة تُفصّل جميع الخدمات مع أسعارها وكمياتها.' },\n    'Discharge Summary':      { label: 'ملخص الخروج',            description: 'تقرير يُكتب عند مغادرة المريض للمستشفى.' },\n    'Prior Approval':         { label: 'موافقة مسبقة',           description: 'إذن من شركة التأمين قبل تلقي علاج محدد.' },\n    'Operation Note':         { label: 'ملاحظات العملية',        description: 'ملاحظات يكتبها الجراح بعد إجراء العملية الجراحية.' },\n    'Attendance Sheet':       { label: 'سجل الحضور',             description: 'سجل بالحضور للجلسات الطبية أو المواعيد.' },\n    'Schedule Of Service':    { label: 'جدول الخدمات',           description: 'قائمة بجلسات العلاج مع التواريخ والأسعار.' }\n  }\n};\n\nconst CLAIMS_LOGIC = {\n  Optical:       { mandatory: ['Invoice', 'Payment Proof', 'Refraction Test Result'], optional: [] },\n  Outpatient:    { mandatory: ['Invoice', 'Receipt', 'Prescription', 'Medical Report'], optional: ['Rad Report', 'Lab Result'] },\n  Dental:        { mandatory: ['Medical Report', 'Payment Proof', 'Invoice'], optional: [] },\n  Inpatient:     { mandatory: ['Itemized Invoice', 'Receipt'], optional: ['Rad Report', 'Discharge Summary', 'Prior Approval', 'Operation Note', 'Lab Result'] },\n  Autism:        { mandatory: ['Attendance Sheet', 'Invoice', 'Medical Report', 'Schedule Of Service'], optional: ['Receipt', 'Prescription'] },\n  ADHD:          { mandatory: ['Attendance Sheet', 'Invoice', 'Medical Report', 'Schedule Of Service'], optional: ['Receipt', 'Prescription'] },\n  Physiotherapy: { mandatory: ['Attendance Sheet', 'Invoice', 'Medical Report', 'Schedule Of Service'], optional: ['Receipt', 'Prescription'] },\n  Psychotherapy: { mandatory: ['Attendance Sheet', 'Invoice', 'Medical Report', 'Schedule Of Service'], optional: ['Receipt', 'Prescription'] }\n};\n\nconst BENEFIT_NAMES = {\n  en: { Optical: 'Optical', Outpatient: 'Out Patient', Dental: 'Dental', Inpatient: 'In Patient', Autism: 'Autism', ADHD: 'ADHD', Physiotherapy: 'Physiotherapy', Psychotherapy: 'Psychotherapy' },\n  ar: { Optical: 'بصريات', Outpatient: 'عيادة خارجية', Dental: 'أسنان', Inpatient: 'تنويم', Autism: 'توحد', ADHD: 'اضطراب نقص الانتباه', Physiotherapy: 'علاج طبيعي', Psychotherapy: 'علاج نفسي' }\n};\n\nconst body = $json.body || $json;\nconst benefitType = body.benefit_type || 'Outpatient';\nconst forDependentId = body.for_dependent_id ?? 'SELF';\nconst forDependentName = body.for_dependent_name ?? null;\nconst lang = $('Claim Init Trigger').first().json.body.language === 'ar' ? 'ar' : 'en';\nconst logic = CLAIMS_LOGIC[benefitType] || CLAIMS_LOGIC['Outpatient'];\nconst dict = LABELS[lang];\nconst benefitLabel = BENEFIT_NAMES[lang][benefitType] || benefitType;\nconst message = lang === 'ar'\n  ? `يرجى رفع المستندات المطلوبة لمطالبة ${benefitLabel}.`\n  : `Please upload the required documents for your ${benefitLabel} claim.`;\n\nconst required_docs = [\n  ...logic.mandatory.map(type => ({ key: type, label: dict[type]?.label || type, description: dict[type]?.description || '', required: true })),\n  ...logic.optional.map(type => ({ key: type, label: dict[type]?.label || type, description: dict[type]?.description || '', required: false }))\n];\n\nreturn [{\n  json: {\n    type: 'document_upload',\n    message,\n    benefit_type: benefitType,\n    for_dependent_id: forDependentId,\n    for_dependent_name: forDependentName,\n    required_docs,\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      },
+      "id": "c8e186c9-52c0-4b41-9103-7c668213b763",
+      "name": "Map Benefit to Docs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2144,
+        1120
+      ],
+      "notes": "Receives benefit_type from Wait node body. Maps to required_docs array using claims logic. resumeUrl is the SAME webhook-waiting URL."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "e6cb03b1-62b2-4deb-8564-5cf5fbbf080e",
+      "name": "Respond — Doc Upload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        1120
+      ],
+      "notes": "Responds to the benefit-type POST with the document_upload widget JSON."
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cdc46ee0-655c-4655-b512-24cd63b7c4f6",
+      "name": "Wait — Doc Upload",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        1120
+      ],
+      "webhookId": "9c1b77c8-08ea-4043-b32a-a33c87e656a6",
+      "notes": "Pauses execution. Frontend POSTs multipart/form-data with binary files to resumeUrl. Each file arrives as a binary property on the item (document_0, document_1, etc)."
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOcr = $input.first().json;\nconst result = Array.isArray(rawOcr) ? rawOcr[0] : rawOcr;\n\nif (!result || result.status !== 'SUCCESS') {\n  return [{\n    json: {\n      type: 'assistant_text',\n      message: 'We could not process your documents. Please ensure they are clear and legible, then try again.',\n      is_error: true\n    }\n  }];\n}\nfunction normalizeDate(raw) {\n  if (!raw) return null;\n  const s = String(raw).trim();\n  if (/^\\d{2}\\/\\d{2}\\/\\d{4}$/.test(s)) return s; // already DD/MM/YYYY\n  const iso = s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;  // YYYY-MM-DD → DD/MM/YYYY\n  const MONTHS = { jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',\n                   jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12' };\n  const mon = s.match(/^(\\d{1,2})[- ]([A-Za-z]{3})[- ](\\d{4})$/);\n  if (mon) {\n    const m = MONTHS[mon[2].toLowerCase()];\n    if (m) return `${String(mon[1]).padStart(2,'0')}/${m}/${mon[3]}`;\n  }\n  const dmy = s.match(/^(\\d{2})-(\\d{2})-(\\d{4})$/);\n  if (dmy) return `${dmy[1]}/${dmy[2]}/${dmy[3]}`;  // DD-MM-YYYY → DD/MM/YYYY\n  return s;\n}\n\nfunction parseDiagnosisCodes(raw) {\n  if (!raw) return [];\n  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);\n  // Split on newlines — each line is a full \"CODE, Description (Primary|Secondary)\"\n  return String(raw).split(/\\n+/).map(s => s.trim()).filter(Boolean);\n}\n\n\nconst exec = result.execution_result;\n\n// Collect image snippets for each field (only include fields that have one)\nconst image_snippets = {};\nconst SNIPPET_FIELDS = [\n  'claimant_name', 'policy_number', 'provider_name', 'provider_country',\n  'service_date', 'diagnosis_code', 'service_code', 'claim_amount',\n  'VAT', 'deductible', 'claim_notes', 'benefit_category'\n];\nfor (const field of SNIPPET_FIELDS) {\n  const snippet = exec[field]?.image_snippet;\n  if (snippet) image_snippets[field] = snippet;\n}\n\nreturn [{\n  json: {\n    type: 'extracted_form',\n    message: 'We extracted your information. Please review and confirm.',\n    extracted_data: {\n      claimant_name:    exec.claimant_name?.value ?? null,\n      policy_number:    exec.policy_number?.value ?? null,\n      provider_name:    exec.provider_name?.value ?? null,\n      provider_country: exec.provider_country?.value ?? null,\n      service_date:     normalizeDate(exec.service_date?.value),\n      diagnosis_code:   parseDiagnosisCodes(exec.diagnosis_code?.value),\n      service_code:     exec.service_code?.value ?? null,\n      claim_amount:     exec.claim_amount?.value ?? null,\n      VAT:              exec.VAT?.value ?? null,\n      deductible:       exec.deductible?.value ?? null,\n      claim_notes:      exec.claim_notes?.value ?? null,\n      benefit_category: exec.benefit_category?.value ?? null,\n      image_snippets,           // ← ADD THIS\n    },\n    ocr_confidence: result.ocr_confidence ?? null,\n    is_doc_unclear:  result.is_doc_unclear ?? false,\n    resumeUrl: $execution.resumeUrl\n}\n  }\n];\n\n"
+      },
+      "id": "5a1e49f8-22dc-40ab-b895-d2195861669c",
+      "name": "Transform OCR to Form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        1120
+      ],
+      "notes": "Transforms the OCR service response (status + execution_result shape) into the extracted_form widget format expected by the frontend."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "b7761e1c-b221-4355-8167-0b14bfdf0d3d",
+      "name": "Respond — Extracted Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        3472,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ae33ff91-173b-455c-ad08-7d4c105694ce",
+      "name": "Wait — Form Confirm",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        3696,
+        1120
+      ],
+      "webhookId": "ebe2d17a-36a0-4bc3-8f4e-33aa3fa7ce79",
+      "notes": "Stage 2: Frontend POSTs form data (claimant_name, provider_name, ..., is_user_edited) to resumeUrl."
+    },
+    {
+      "parameters": {
+        "jsCode": "// STUB — replace with real policy check, geo-validation, and saved IBAN lookup\nreturn [{\n  json: {\n    type: 'iban_input',\n    message: 'Please provide your bank account IBAN for reimbursement.',\n    geo_check_status: true,\n    is_service_uncovered: false,\n    benefit_category: ($('Wait — Benefit Type').first().json.body || $('Wait — Benefit Type').first().json).benefit_type || null,\n    saved_ibans: [],\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      },
+      "id": "729c9426-c80f-44d7-9985-f0a1ac5d9a7b",
+      "name": "Build IBAN Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3920,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "8270e556-eea3-44ed-b0d3-55bafe5c2e6e",
+      "name": "Respond — IBAN",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        4144,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1b6d6b00-2cc6-4730-a015-ace646ead7df",
+      "name": "Wait — IBAN",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        4368,
+        1120
+      ],
+      "webhookId": "3aa6c965-c6e4-43f6-a8a0-c89d08cfb3e6",
+      "notes": "Stage 3: Frontend POSTs { iban, iban_action } to resumeUrl."
+    },
+    {
+      "parameters": {
+        "jsCode": "// STUB — replace with real IBAN verification and financial calculation\nconst body = $json.body || $json;\nreturn [{\n  json: {\n    type: 'financial_summary',\n    iban_verified: true,\n    estimated_payout: 0.00,\n    processing_type: 'Standard',\n    currency: 'SAR',\n    claim_amount: 0.00,\n    VAT: 0.00,\n    deductible: 0.00,\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      },
+      "id": "dea34197-7d15-4f38-8081-26c35d6e464d",
+      "name": "Build Financial Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4592,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "6155f83a-f495-46de-b37c-46b6ad6c8f2f",
+      "name": "Respond — Financial",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        4816,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "980300ef-1245-45d6-bfd6-c25d73f50f55",
+      "name": "Wait — Final Submit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        5040,
+        1120
+      ],
+      "webhookId": "8d177b2a-df31-4361-a3b8-915d18479e26",
+      "notes": "Stage 4: Frontend POSTs { submit_action, submission_timestamp } to resumeUrl."
+    },
+    {
+      "parameters": {
+        "jsCode": "// STUB — replace with real claim submission to MG Core\nconst claimId = 'UCRN' + Date.now();\nreturn [{\n  json: {\n    type: 'success_card',\n    claim_id: claimId,\n    submission_timestamp: new Date().toISOString(),\n    processing_type: 'Standard',\n    message: 'Your claim has been submitted successfully. You will receive updates in your notification centre.'\n  }\n}];"
+      },
+      "id": "21c6695c-9694-43ee-a02b-212526d9d2b9",
+      "name": "Build Success Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5264,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "8f979912-a992-4bcf-ab3d-93af2ad443f7",
+      "name": "Respond — Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        5488,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        1664
+      ],
+      "id": "40e37ba4-d350-4ddf-bad3-e859e8636969",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Muws3FKbH6mAaw3J",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Claim Init Trigger').item.json.body.session_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1488,
+        1664
+      ],
+      "id": "6d3837ed-5e18-431e-8866-9513be2ffbe1",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1920,
+        1440
+      ],
+      "id": "9a534151-72d3-48a0-a2ec-e8faa20a8ad5",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        1616
+      ],
+      "id": "8db8bb9b-3c5f-4d98-bc11-c9e511b11e03",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Muws3FKbH6mAaw3J",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.session_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        1616
+      ],
+      "id": "45664fa9-b06c-475c-8d4a-c447fe4c4c02",
+      "name": "Simple Memory1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "CLAIM",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "72efc507-5c7c-4e79-b9e9-1e481175461e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "117dfc90-40f3-436b-b3a0-0a6972c4fdf1",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "=CHAT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        1392
+      ],
+      "id": "f8f0facd-fa15-477f-9274-8f6457d7fafc",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Claim Init Trigger').item.json.body.message }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant that is nice to the user. tell him if he needs anything"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1344,
+        1440
+      ],
+      "id": "f30c874d-388c-4b4b-b4f5-ff9c699e80d9",
+      "name": "Conversational"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Message: {{ $json.body.message }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant that understands user's intent.\n\nIf the user wants to chat and converse normally, return 'CHAT',if the user wants to submit a claim or deal with claims, return 'CLAIM'. Do not return anything else. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        768,
+        1392
+      ],
+      "id": "7b705aa3-16d9-43c5-848d-2d80005d00d6",
+      "name": "Supervisor"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.message }}",
+                    "rightValue": "Submit a claim",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f22834b7-33b2-4f93-8168-27f6d5c1c9aa"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CLAIM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e9a3f242-8b73-4c1d-9e73-fcb9745d9f2d",
+                    "leftValue": "={{ $json.body.message }}",
+                    "rightValue": "تقديم مطالبة",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CLAIM"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        1280
+      ],
+      "id": "fe8a6de4-eef2-4ba3-8987-190296e635ed",
+      "name": "Quick Button?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4c58117e-2377-40ff-8676-a321d5ecf18e",
+              "name": "=type",
+              "value": "assistant_text",
+              "type": "string"
+            },
+            {
+              "id": "2b818d9f-02c4-4a46-a654-a148cd5d5683",
+              "name": "message",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "bc7ab322-054a-46ec-b555-9274d9984317",
+              "name": "resumeUrl",
+              "value": "={{ $execution.resumeUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1696,
+        1440
+      ],
+      "id": "24364784-d0ed-448d-99b1-c912e1071428",
+      "name": "Prepare Payload"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vAI9p0y31DsIRVS9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vAI9p0y31DsIRVS9",
+          "cachedResultName": "OCR Medgulf"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2816,
+        1120
+      ],
+      "name": "Call OCR Medgulf",
+      "id": "4ae4fc27-fe3a-4d1e-bc93-88cc1f4f2ae9"
+    }
+  ],
+  "connections": {
+    "Claim Init Trigger": {
+      "main": [
+        [
+          {
+            "node": "Quick Button?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Benefit Selector": {
+      "main": [
+        [
+          {
+            "node": "Respond — Benefit Selector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond — Benefit Selector": {
+      "main": [
+        [
+          {
+            "node": "Wait — Benefit Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait — Benefit Type": {
+      "main": [
+        [
+          {
+            "node": "Map Benefit to Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Benefit to Docs": {
+      "main": [
+        [
+          {
+            "node": "Respond — Doc Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond — Doc Upload": {
+      "main": [
+        [
+          {
+            "node": "Wait — Doc Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait — Doc Upload": {
+      "main": [
+        [
+          {
+            "node": "Call OCR Medgulf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform OCR to Form": {
+      "main": [
+        [
+          {
+            "node": "Respond — Extracted Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond — Extracted Form": {
+      "main": [
+        [
+          {
+            "node": "Wait — Form Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait — Form Confirm": {
+      "main": [
+        [
+          {
+            "node": "Build IBAN Stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build IBAN Stub": {
+      "main": [
+        [
+          {
+            "node": "Respond — IBAN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond — IBAN": {
+      "main": [
+        [
+          {
+            "node": "Wait — IBAN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait — IBAN": {
+      "main": [
+        [
+          {
+            "node": "Build Financial Stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Financial Stub": {
+      "main": [
+        [
+          {
+            "node": "Respond — Financial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond — Financial": {
+      "main": [
+        [
+          {
+            "node": "Wait — Final Submit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait — Final Submit": {
+      "main": [
+        [
+          {
+            "node": "Build Success Stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success Stub": {
+      "main": [
+        [
+          {
+            "node": "Respond — Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conversational",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conversational",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Build Benefit Selector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Conversational",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversational": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supervisor": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quick Button?": {
+      "main": [
+        [
+          {
+            "node": "Build Benefit Selector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Benefit Selector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Supervisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call OCR Medgulf": {
+      "main": [
+        [
+          {
+            "node": "Transform OCR to Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Claim Init Trigger": [
+      {
+        "headers": {
+          "host": "n8n-automation-test3.iohealth.com",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+          "content-length": "155",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "en-US,en;q=0.9",
+          "authorization": "Bearer mock-dev-token-do-not-use-in-prod",
+          "content-type": "application/json",
+          "origin": "http://localhost:5173",
+          "priority": "u=1, i",
+          "referer": "http://localhost:5173/",
+          "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Windows\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          "via": "2.0 Caddy",
+          "x-forwarded-for": "94.207.251.55",
+          "x-forwarded-host": "n8n-automation-test3.iohealth.com",
+          "x-forwarded-proto": "https"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "session_id": "adcf0460-7bbd-464c-8448-df640a9d3f1f",
+          "user_id": "MG-USER-00123",
+          "policy_number": "MG-2024-001234",
+          "language": "en",
+          "message": "Submit a claim"
+        },
+        "webhookUrl": "https://n8n-automation-test3.iohealth.com/webhook/medgulf-claim-init",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43a05ce589b039a8f39d72f886d870fc802640a88ae901fd42ed11096a19b314"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "warning_banner",
+  "message": "We found some issues with your claim that require your attention.",
+  "geo_check_status": false,
+  "is_service_uncovered": true,
+  "is_doc_unclear": false,
+  "benefit_category": "Outpatient",
+  "saved_ibans": [],
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-warning-uuid"
+}

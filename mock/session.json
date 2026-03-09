@@ -1,0 +1,9 @@
+{
+  "user_id": "MG-USER-00123",
+  "policy_number": "MG-2024-001234",
+  "is_primary": true,
+  "full_name_en": "Ahmad Al Mansouri",
+  "full_name_ar": "أحمد المنصوري",
+  "language": "en",
+  "session_token": "mock-dev-token-do-not-use-in-prod"
+}

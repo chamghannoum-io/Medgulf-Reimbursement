@@ -1,0 +1,26 @@
+{
+  "type": "document_upload",
+  "message": "Please upload the required documents for your Dental claim.",
+  "benefit_type": "Dental",
+  "required_docs": [
+    {
+      "key": "Medical Report",
+      "label": "Medical Report",
+      "description": "A document that explains a patient's health condition, diagnosis, and treatment.",
+      "required": true
+    },
+    {
+      "key": "Payment Proof",
+      "label": "Payment Proof",
+      "description": "Proof of the required payment completion such as a receipt or bank transfer.",
+      "required": true
+    },
+    {
+      "key": "Invoice",
+      "label": "Invoice",
+      "description": "Details of the amount to be paid for services or medications provided to the patient.",
+      "required": true
+    }
+  ],
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage1-ocr"
+}

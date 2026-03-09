@@ -1,0 +1,11 @@
+{
+  "type": "financial_summary",
+  "iban_verified": true,
+  "estimated_payout": 622.50,
+  "processing_type": "Standard",
+  "currency": "SAR",
+  "claim_amount": 850.00,
+  "VAT": 127.50,
+  "deductible": 100.00,
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage4-uuid"
+}

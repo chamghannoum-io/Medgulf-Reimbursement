@@ -1,0 +1,5 @@
+{
+  "type": "processing_steps",
+  "message": "Your documents have been received. Analysing now…",
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage1-uuid"
+}

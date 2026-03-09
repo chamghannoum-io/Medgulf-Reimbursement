@@ -1,0 +1,341 @@
+{
+  "name": "Medgulf Stage 1 — Claim Submission Flow",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000001",
+      "name": "Claim Init Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "medgulf-claim-init",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "notes": "Initial trigger. Receives: { user_id, policy_number, language }. Returns benefit_type_selector widget."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000002",
+      "name": "Build Benefit Selector",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{\n  json: {\n    type: 'benefit_type_selector',\n    message: 'To start your claim, please select your benefit type.',\n    benefit_types: [\n      { value: 'Optical',       label: 'Optical' },\n      { value: 'Outpatient',    label: 'Out Patient' },\n      { value: 'Dental',        label: 'Dental' },\n      { value: 'Inpatient',     label: 'In Patient' },\n      { value: 'Autism',        label: 'Autism' },\n      { value: 'ADHD',          label: 'ADHD' },\n      { value: 'Physiotherapy', label: 'Physiotherapy' },\n      { value: 'Psychotherapy', label: 'Psychotherapy' }\n    ],\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000003",
+      "name": "Respond — Benefit Selector",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [480, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
+          }
+        }
+      },
+      "notes": "Responds to the initial POST with the benefit_type_selector JSON. Execution continues to Wait node."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000004",
+      "name": "Wait — Benefit Type",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [720, 300],
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "notes": "Pauses execution. Frontend POSTs { benefit_type: 'Dental' } to resumeUrl (webhook-waiting/<exec-id>) to resume."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000005",
+      "name": "Map Benefit to Docs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const CLAIMS_LOGIC = {\n  Optical: {\n    mandatory: [\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n      { type: 'Payment Proof', description: 'Proof of the required payment completion such as a receipt or bank transfer.' },\n      { type: 'Refraction Test Result', description: 'A test that determines the strength of glasses or lenses needed to correct vision.' }\n    ],\n    optional: []\n  },\n  Outpatient: {\n    mandatory: [\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n      { type: 'Receipt', description: 'A document showing the amount paid and the services or medications covered by the payment.' },\n      { type: 'Prescription', description: 'A paper written by a doctor that lists the medicines a patient should take and how to use them.' },\n      { type: 'Medical Report', description: 'A document that explains a patient\\'s health condition, diagnosis, and treatment.' }\n    ],\n    optional: [\n      { type: 'Rad Report', description: 'A radiological report explaining the results of imaging tests such as X-rays or ultrasounds.' },\n      { type: 'Lab Result', description: 'A report showing the outcomes of medical tests or laboratory exams.' }\n    ]\n  },\n  Dental: {\n    mandatory: [\n      { type: 'Medical Report', description: 'A document that explains a patient\\'s health condition, diagnosis, and treatment.' },\n      { type: 'Payment Proof', description: 'Proof of the required payment completion such as a receipt or bank transfer.' },\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' }\n    ],\n    optional: []\n  },\n  Inpatient: {\n    mandatory: [\n      { type: 'Itemized Invoice', description: 'An invoice that breaks down all services or purchased items with their prices and quantities.' },\n      { type: 'Receipt', description: 'A document showing the amount paid and the services or medications covered by the payment.' }\n    ],\n    optional: [\n      { type: 'Rad Report', description: 'A radiological report explaining the results of imaging tests such as X-rays or ultrasounds.' },\n      { type: 'Discharge Summary', description: 'A report written when a patient leaves the hospital including health details.' },\n      { type: 'Prior Approval', description: 'Permission obtained from the insurance company before the patient receives specific treatment.' },\n      { type: 'Operation Note', description: 'An operative note written by the surgeon after a surgical procedure outlining details.' },\n      { type: 'Lab Result', description: 'A report showing the outcomes of medical tests or laboratory exams.' }\n    ]\n  },\n  Autism: {\n    mandatory: [\n      { type: 'Attendance Sheet', description: 'A record of attendance for medical sessions or appointments.' },\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n      { type: 'Medical Report', description: 'A document that explains a patient\\'s health condition, diagnosis, and treatment.' },\n      { type: 'Schedule Of Service', description: 'A list that includes details of each treatment or test session including date and price.' }\n    ],\n    optional: [\n      { type: 'Receipt', description: 'A document showing the amount paid and the services or medications covered by the payment.' },\n      { type: 'Prescription', description: 'A paper written by a doctor that lists the medicines a patient should take and how to use them.' }\n    ]\n  },\n  ADHD: {\n    mandatory: [\n      { type: 'Attendance Sheet', description: 'A record of attendance for medical sessions or appointments.' },\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n      { type: 'Medical Report', description: 'A document that explains a patient\\'s health condition, diagnosis, and treatment.' },\n      { type: 'Schedule Of Service', description: 'A list that includes details of each treatment or test session including date and price.' }\n    ],\n    optional: [\n      { type: 'Receipt', description: 'A document showing the amount paid and the services or medications covered by the payment.' },\n      { type: 'Prescription', description: 'A paper written by a doctor that lists the medicines a patient should take and how to use them.' }\n    ]\n  },\n  Physiotherapy: {\n    mandatory: [\n      { type: 'Attendance Sheet', description: 'A record of attendance for medical sessions or appointments.' },\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n      { type: 'Medical Report', description: 'A document that explains a patient\\'s health condition, diagnosis, and treatment.' },\n      { type: 'Schedule Of Service', description: 'A list that includes details of each treatment or test session including date and price.' }\n    ],\n    optional: [\n      { type: 'Receipt', description: 'A document showing the amount paid and the services or medications covered by the payment.' },\n      { type: 'Prescription', description: 'A paper written by a doctor that lists the medicines a patient should take and how to use them.' }\n    ]\n  },\n  Psychotherapy: {\n    mandatory: [\n      { type: 'Attendance Sheet', description: 'A record of attendance for medical sessions or appointments.' },\n      { type: 'Invoice', description: 'Details of the amount to be paid for services or medications provided to the patient.' },\n      { type: 'Medical Report', description: 'A document that explains a patient\\'s health condition, diagnosis, and treatment.' },\n      { type: 'Schedule Of Service', description: 'A list that includes details of each treatment or test session including date and price.' }\n    ],\n    optional: [\n      { type: 'Receipt', description: 'A document showing the amount paid and the services or medications covered by the payment.' },\n      { type: 'Prescription', description: 'A paper written by a doctor that lists the medicines a patient should take and how to use them.' }\n    ]\n  }\n};\n\nconst body = $json.body || $json;\nconst benefitType = body.benefit_type || 'Outpatient';\nconst logic = CLAIMS_LOGIC[benefitType] || CLAIMS_LOGIC['Outpatient'];\n\nconst required_docs = [\n  ...logic.mandatory.map(doc => ({ key: doc.type, label: doc.type, description: doc.description, required: true })),\n  ...logic.optional.map(doc => ({ key: doc.type, label: doc.type, description: doc.description, required: false }))\n];\n\nreturn [{\n  json: {\n    type: 'document_upload',\n    message: `Please upload the required documents for your ${benefitType} claim.`,\n    benefit_type: benefitType,\n    required_docs,\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      },
+      "notes": "Receives benefit_type from Wait node body. Maps to required_docs array using claims logic. resumeUrl is the SAME webhook-waiting URL."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000006",
+      "name": "Respond — Doc Upload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1200, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
+          }
+        }
+      },
+      "notes": "Responds to the benefit-type POST with the document_upload widget JSON."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000007",
+      "name": "Wait — Doc Upload",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1440, 300],
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "notes": "Pauses execution. Frontend POSTs multipart/form-data with binary files to resumeUrl. Each file arrives as a binary property on the item (document_0, document_1, etc)."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000008",
+      "name": "Call OCR Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1680, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.OCR_SERVICE_URL }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "sendBinaryData": true,
+        "binaryPropertyName": "data0",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "notes": "CONFIGURE THIS NODE: Set OCR_SERVICE_URL environment variable. Adjust binaryPropertyName and body params to match your OCR service API. Files from FormData arrive as binary properties (data0, data1, ...) on the item."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000009",
+      "name": "Transform OCR to Form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const rawOcr = $input.first().json;\nconst result = Array.isArray(rawOcr) ? rawOcr[0] : rawOcr;\n\nif (!result || result.status !== 'SUCCESS') {\n  return [{\n    json: {\n      type: 'assistant_text',\n      message: 'We could not process your documents. Please ensure they are clear and legible, then try again.',\n      is_error: true\n    }\n  }];\n}\n\nconst exec = result.execution_result;\nconst val = (field) => (exec[field] && exec[field].value !== undefined) ? exec[field].value : null;\n\n// Retrieve benefit_type stored from Wait — Benefit Type node\nlet benefitType = null;\ntry {\n  const waitData = $('Wait — Benefit Type').first().json;\n  const waitBody = waitData.body || waitData;\n  benefitType = waitBody.benefit_type || null;\n} catch(e) {\n  benefitType = null;\n}\n\nconst coreFields = ['claimant_name', 'provider_name', 'provider_country', 'service_date', 'claim_amount'];\nconst nullCount = coreFields.filter(f => val(f) === null).length;\n\nreturn [{\n  json: {\n    type: 'extracted_form',\n    message: 'We extracted your information. Please review and confirm.',\n    extracted_data: {\n      claimant_name:    val('claimant_name'),\n      policy_number:    val('policy_number'),\n      provider_name:    val('provider_name'),\n      provider_country: val('provider_country'),\n      service_date:     val('service_date'),\n      diagnosis_code:   val('diagnosis_code'),\n      service_code:     val('service_code'),\n      claim_amount:     val('claim_amount'),\n      VAT:              val('vat'),\n      deductible:       val('deductible'),\n      claim_notes:      null,\n      benefit_category: benefitType\n    },\n    ocr_confidence: 0.85,\n    is_doc_unclear: nullCount > 2,\n    documents_attached: exec.documents_attached || [],\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      },
+      "notes": "Transforms the OCR service response (status + execution_result shape) into the extracted_form widget format expected by the frontend."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000010",
+      "name": "Respond — Extracted Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2160, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
+          }
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000011",
+      "name": "Wait — Form Confirm",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2400, 300],
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "notes": "Stage 2: Frontend POSTs form data (claimant_name, provider_name, ..., is_user_edited) to resumeUrl."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000012",
+      "name": "Build IBAN Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// STUB — replace with real policy check, geo-validation, and saved IBAN lookup\nreturn [{\n  json: {\n    type: 'iban_input',\n    message: 'Please provide your bank account IBAN for reimbursement.',\n    geo_check_status: true,\n    is_service_uncovered: false,\n    benefit_category: ($('Wait — Benefit Type').first().json.body || $('Wait — Benefit Type').first().json).benefit_type || null,\n    saved_ibans: [],\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000013",
+      "name": "Respond — IBAN",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2880, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
+          }
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000014",
+      "name": "Wait — IBAN",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [3120, 300],
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "notes": "Stage 3: Frontend POSTs { iban, iban_action } to resumeUrl."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000015",
+      "name": "Build Financial Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3360, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// STUB — replace with real IBAN verification and financial calculation\nconst body = $json.body || $json;\nreturn [{\n  json: {\n    type: 'financial_summary',\n    iban_verified: true,\n    estimated_payout: 0.00,\n    processing_type: 'Standard',\n    currency: 'SAR',\n    claim_amount: 0.00,\n    VAT: 0.00,\n    deductible: 0.00,\n    resumeUrl: $execution.resumeUrl\n  }\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000016",
+      "name": "Respond — Financial",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [3600, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
+          }
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000017",
+      "name": "Wait — Final Submit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [3840, 300],
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "notes": "Stage 4: Frontend POSTs { submit_action, submission_timestamp } to resumeUrl."
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000018",
+      "name": "Build Success Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4080, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// STUB — replace with real claim submission to MG Core\nconst claimId = 'UCRN' + Date.now();\nreturn [{\n  json: {\n    type: 'success_card',\n    claim_id: claimId,\n    submission_timestamp: new Date().toISOString(),\n    processing_type: 'Standard',\n    message: 'Your claim has been submitted successfully. You will receive updates in your notification centre.'\n  }\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000019",
+      "name": "Respond — Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [4320, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Claim Init Trigger": {
+      "main": [[{ "node": "Build Benefit Selector", "type": "main", "index": 0 }]]
+    },
+    "Build Benefit Selector": {
+      "main": [[{ "node": "Respond — Benefit Selector", "type": "main", "index": 0 }]]
+    },
+    "Respond — Benefit Selector": {
+      "main": [[{ "node": "Wait — Benefit Type", "type": "main", "index": 0 }]]
+    },
+    "Wait — Benefit Type": {
+      "main": [[{ "node": "Map Benefit to Docs", "type": "main", "index": 0 }]]
+    },
+    "Map Benefit to Docs": {
+      "main": [[{ "node": "Respond — Doc Upload", "type": "main", "index": 0 }]]
+    },
+    "Respond — Doc Upload": {
+      "main": [[{ "node": "Wait — Doc Upload", "type": "main", "index": 0 }]]
+    },
+    "Wait — Doc Upload": {
+      "main": [[{ "node": "Call OCR Service", "type": "main", "index": 0 }]]
+    },
+    "Call OCR Service": {
+      "main": [[{ "node": "Transform OCR to Form", "type": "main", "index": 0 }]]
+    },
+    "Transform OCR to Form": {
+      "main": [[{ "node": "Respond — Extracted Form", "type": "main", "index": 0 }]]
+    },
+    "Respond — Extracted Form": {
+      "main": [[{ "node": "Wait — Form Confirm", "type": "main", "index": 0 }]]
+    },
+    "Wait — Form Confirm": {
+      "main": [[{ "node": "Build IBAN Stub", "type": "main", "index": 0 }]]
+    },
+    "Build IBAN Stub": {
+      "main": [[{ "node": "Respond — IBAN", "type": "main", "index": 0 }]]
+    },
+    "Respond — IBAN": {
+      "main": [[{ "node": "Wait — IBAN", "type": "main", "index": 0 }]]
+    },
+    "Wait — IBAN": {
+      "main": [[{ "node": "Build Financial Stub", "type": "main", "index": 0 }]]
+    },
+    "Build Financial Stub": {
+      "main": [[{ "node": "Respond — Financial", "type": "main", "index": 0 }]]
+    },
+    "Respond — Financial": {
+      "main": [[{ "node": "Wait — Final Submit", "type": "main", "index": 0 }]]
+    },
+    "Wait — Final Submit": {
+      "main": [[{ "node": "Build Success Stub", "type": "main", "index": 0 }]]
+    },
+    "Build Success Stub": {
+      "main": [[{ "node": "Respond — Success", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [],
+  "versionId": "medgulf-stage1-v1-20260306"
+}

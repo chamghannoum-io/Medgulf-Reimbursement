@@ -1,0 +1,20 @@
+{
+  "type": "benefit_type_selector",
+  "message": "To start your claim, please select your benefit type.",
+  "dependents": [
+    { "id": "SELF",    "name": "Ahmad Al-Mansouri",  "relation": "self"   },
+    { "id": "DEP-001", "name": "Fatima Al-Mansouri", "relation": "spouse" },
+    { "id": "DEP-002", "name": "Omar Al-Mansouri",   "relation": "child"  }
+  ],
+  "benefit_types": [
+    { "value": "Optical",       "label": "Optical" },
+    { "value": "Outpatient",    "label": "Out Patient" },
+    { "value": "Dental",        "label": "Dental" },
+    { "value": "Inpatient",     "label": "In Patient" },
+    { "value": "Autism",        "label": "Autism" },
+    { "value": "ADHD",          "label": "ADHD" },
+    { "value": "Physiotherapy", "label": "Physiotherapy" },
+    { "value": "Psychotherapy", "label": "Psychotherapy" }
+  ],
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage0b-benefit"
+}

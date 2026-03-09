@@ -1,0 +1,21 @@
+{
+  "type": "extracted_form",
+  "message": "We've extracted your information and auto-filled your claim details. Please review and confirm.",
+  "extracted_data": {
+    "claimant_name": "Ahmed Al-Rashid",
+    "policy_number": "MG-2024-001234",
+    "provider_name": "Saudi German Hospital",
+    "provider_country": "Saudi Arabia",
+    "service_date": "2025-01-15",
+    "diagnosis_code": "J06.9",
+    "service_code": "SBS-001",
+    "claim_amount": 1250.00,
+    "VAT": 187.50,
+    "deductible": 50.00,
+    "claim_notes": "Upper respiratory tract infection treatment",
+    "benefit_category": "Outpatient"
+  },
+  "ocr_confidence": 0.91,
+  "is_doc_unclear": false,
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-resume-stage2"
+}

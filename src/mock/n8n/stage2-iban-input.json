@@ -1,0 +1,15 @@
+{
+  "type": "iban_input",
+  "message": "Where should we send your reimbursement payment?",
+  "geo_check_status": true,
+  "is_service_uncovered": false,
+  "benefit_category": "Outpatient",
+  "saved_ibans": [
+    {
+      "id": "iban-001",
+      "masked": "SA** **** **** **** ***123",
+      "is_default": true
+    }
+  ],
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage3-uuid"
+}

@@ -1,0 +1,257 @@
+{
+  "app": {
+    "title": "Medgulf Smart Assistant"
+  },
+  "chat": {
+    "header": {
+      "title": "Smart Assistant",
+      "subtitle": "Medical Reimbursement",
+      "languageToggle": "عربي",
+      "notifications": "Notifications"
+    },
+    "input": {
+      "placeholder": "Type a message or add claim notes…",
+      "send": "Send",
+      "voice": "Voice input",
+      "attach": "Attach file",
+      "disabled": "Claim submitted — thread is read-only"
+    },
+    "typing": "Assistant is typing…",
+    "greeting": "Hello, {{name}}! I'm your Medgulf Smart Assistant. How can I help you today?",
+    "quickActions": {
+      "label": "Quick actions",
+      "submitClaim": "Submit a claim",
+      "checkStatus": "Check claim status",
+      "talkToAgent": "Talk to an agent",
+      "help": "Help"
+    },
+    "error": {
+      "generic": "Something went wrong. Please try again.",
+      "timeout": "The request timed out. Please try again.",
+      "retry": "Retry"
+    }
+  },
+  "upload": {
+    "card": {
+      "title": "Upload Documents",
+      "subtitle": "Upload your medical documents to start the claim process.",
+      "invoiceLabel": "Invoice",
+      "reportLabel": "Medical Report",
+      "prescriptionLabel": "Prescription",
+      "notesLabel": "Claim Notes (optional)",
+      "notesPlaceholder": "Describe what happened or add any context…",
+      "button": "Upload & Analyse",
+      "hint": "PDF, JPG, PNG — max 10 MB per file",
+      "minDocsHint": "At least one Invoice and one Medical Report or Prescription required",
+      "dragDrop": "Drag & drop files here, or click to browse",
+      "addMore": "Add more files",
+      "remove": "Remove"
+    },
+    "docType": {
+      "invoice": "Invoice",
+      "medical_report": "Medical Report",
+      "prescription": "Prescription",
+      "other": "Other"
+    },
+    "error": {
+      "fileType": "Only PDF, JPG, and PNG files are accepted.",
+      "fileSize": "File must be under 10 MB.",
+      "minDocs": "Please upload at least one Invoice and one Medical Report or Prescription."
+    },
+    "progress": {
+      "uploading": "Uploading…",
+      "done": "Upload complete"
+    },
+    "slot": {
+      "required": "Required",
+      "optional": "Optional",
+      "uploaded": "Uploaded",
+      "tapToUpload": "Tap to upload",
+      "changeFile": "Change file",
+      "addMore": "Add more"
+    },
+    "guided": {
+      "title": "Guided Upload",
+      "recommended": "Recommended"
+    },
+    "quick": {
+      "title": "Quick Upload",
+      "camera": "Take Photo",
+      "browse": "Browse Files",
+      "empty": "Take a photo or browse files — they'll appear here",
+      "labelPlaceholder": "Label (optional)",
+      "labelHint": "What is this file?"
+    }
+  },
+  "processing": {
+    "title": "Analysing your documents…",
+    "complete": "Analysis complete",
+    "stream": [
+      "Opening your uploaded documents…",
+      "Scanning the invoice for provider details…",
+      "Cross-referencing with our provider database…",
+      "Reading the date of service…",
+      "Identifying the benefit category…",
+      "Calculating the total claimed amount…",
+      "Checking document clarity and completeness…",
+      "Verifying your active policy coverage…",
+      "Finalising the results — almost there…"
+    ]
+  },
+  "claimant": {
+    "title": "Who is this claim for?",
+    "subtitle": "Select the person receiving the medical service.",
+    "self": "Myself",
+    "confirm": "Confirm",
+    "relations": {
+      "self": "Self",
+      "spouse": "Spouse",
+      "child": "Child"
+    }
+  },
+  "form": {
+    "title": "Review Extracted Data",
+    "subtitle": "Please review the information extracted from your documents. Correct any errors before continuing.",
+    "fields": {
+      "claimantName": "Claimant Name",
+      "policyNumber": "Policy Number",
+      "providerName": "Provider Name",
+      "providerCountry": "Provider Country",
+      "serviceDate": "Date of Service",
+      "diagnosisCode": "Diagnosis Code",
+      "diagnosisPlaceholder": "Type a code and press Enter…",
+      "diagnosisPrimary": "Primary",
+      "diagnosisSecondary": "Secondary",
+      "diagnosisEmpty": "No diagnosis codes extracted.",
+      "serviceCode": "Service Code",
+      "claimAmount": "Claimed Amount (SAR)",
+      "VAT": "VAT (SAR)",
+      "deductible": "Deductible (SAR)",
+      "claimNotes": "Claim Notes",
+      "benefitCategory": "Benefit Category"
+    },
+    "readOnly": "Read-only",
+    "optional": "Optional",
+    "required": "Required",
+    "editedBadge": "Edited",
+    "confirm": "Confirm & Continue",
+    "fieldColumn": "Field",
+    "imageColumn": "Image",
+    "viewSnippet": "View snippet",
+    "snippet": {
+      "title": "Document Snippet",
+      "close": "Close"
+    },
+    "error": {
+      "required": "This field is required.",
+      "invalidNumber": "Please enter a valid number."
+    }
+  },
+  "iban": {
+    "title": "Payment Details",
+    "subtitle": "Where should we send your reimbursement?",
+    "savedLabel": "Saved account",
+    "useThis": "Use this account",
+    "useDifferent": "Use a different account",
+    "addNew": "Add new IBAN",
+    "select": "Select an account",
+    "input": {
+      "label": "IBAN",
+      "placeholder": "SA followed by 22 alphanumeric characters"
+    },
+    "confirm": "Confirm IBAN",
+    "verified": "IBAN verified",
+    "failed": "IBAN verification failed. Please check the number and try again.",
+    "modal": {
+      "title": "Payment Details Confirmation",
+      "sendingTo": "Your claim reimbursement will be sent to:",
+      "question": "Would you like to proceed with this IBAN or update it?",
+      "proceed": "Proceed with Current IBAN",
+      "update": "Update IBAN"
+    },
+    "error": {
+      "length": "IBAN must be 24 characters.",
+      "format": "IBAN must start with a 2-letter country code and contain only letters and numbers.",
+      "required": "Please enter an IBAN."
+    }
+  },
+  "warning": {
+    "geo": {
+      "title": "Location Warning",
+      "message": "The provider's location may be outside your policy's covered region. Your claim will be flagged for manual review."
+    },
+    "coverage": {
+      "title": "Coverage Warning",
+      "message": "This service may not be covered under your current policy. Your claim will be flagged for manual review."
+    },
+    "docUnclear": {
+      "title": "Document Quality Warning",
+      "message": "One or more documents did not pass our quality check. The extracted information may be inaccurate. You can re-upload or proceed with the data shown."
+    },
+    "submitAnyway": "Submit Anyway",
+    "discard": "Discard Claim",
+    "note": "Submitting with warnings will route your claim to manual review."
+  },
+  "financial": {
+    "title": "Financial Summary",
+    "claimAmount": "Claimed Amount",
+    "VAT": "VAT",
+    "deductible": "Deductible",
+    "estimatedPayout": "Estimated Payout",
+    "currency": "SAR",
+    "disclaimer": "This is an estimate and not a guarantee of payment. Deductible and VAT will not be reimbursed if approved.",
+    "submit": "Submit Claim",
+    "processingType": {
+      "Standard": "Standard processing",
+      "Manual_Review_Required": "Manual review required"
+    }
+  },
+  "confirmation": {
+    "title": "Confirm Submission",
+    "message": "Are you sure you want to submit this claim? This action cannot be undone.",
+    "confirm": "Yes, Submit",
+    "cancel": "Cancel"
+  },
+  "success": {
+    "title": "Claim Submitted",
+    "claimId": "Claim ID",
+    "message": "Your reimbursement request has been submitted successfully. It will be processed within the stated timeframe.",
+    "processingType": "Processing type",
+    "timestamp": "Submitted at",
+    "notification": "You will receive updates in your notification centre as your claim progresses."
+  },
+  "benefitType": {
+    "title": "Select Benefit Type",
+    "subtitle": "Choose the type of medical benefit for this claim.",
+    "confirm": "Confirm",
+    "selected": "Selected",
+    "forWhom": {
+      "label": "Who is this claim for?",
+      "subtitle": "Select the person who received the medical service.",
+      "placeholder": "Select a person…",
+      "forLabel": "For"
+    },
+    "options": {
+      "Optical":       "Optical",
+      "Outpatient":    "Out Patient",
+      "Dental":        "Dental",
+      "Inpatient":     "In Patient",
+      "Autism":        "Autism",
+      "ADHD":          "ADHD",
+      "Physiotherapy": "Physiotherapy",
+      "Psychotherapy": "Psychotherapy"
+    }
+  },
+  "notifications": {
+    "centre": "Notification Centre",
+    "empty": "No notifications yet.",
+    "statuses": {
+      "submitted": "Your reimbursement request has been submitted successfully. It will be processed within the stated timeframe.",
+      "under_review": "Your request is currently under review. Note: deductible and VAT will not be reimbursed if approved.",
+      "additional_info": "We require additional information to continue processing your request.",
+      "approved": "Your reimbursement request has been approved and will be processed within the stated timeframe.",
+      "rejected": "Your request has been reviewed and could not be approved.",
+      "payment_processed": "Your payment has been processed successfully and transferred to your registered bank account."
+    }
+  }
+}

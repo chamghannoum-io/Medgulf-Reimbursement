@@ -1,0 +1,10 @@
+{
+  "type": "claimant_selector",
+  "message": "We could not identify the claimant from your documents. Please select who this claim is for.",
+  "dependents": [
+    { "id": "dep-self", "name": "Ahmed Al-Rashid", "relation": "self" },
+    { "id": "dep-001", "name": "Fatima Al-Rashid", "relation": "spouse" },
+    { "id": "dep-002", "name": "Omar Al-Rashid", "relation": "child" }
+  ],
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-claimant-uuid"
+}
