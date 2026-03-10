@@ -1,14 +1,20 @@
 {
   "type": "iban_input",
-  "message": "Where should we send your reimbursement payment?",
+  "message": "Please select a saved bank account or enter a new IBAN for reimbursement.",
   "geo_check_status": true,
   "is_service_uncovered": false,
-  "benefit_category": "Outpatient",
+  "benefit_type": null,
+  "benefit_category": null,
+  "policy_number": "MG-2024-001234",
+  "has_saved_ibans": true,
   "saved_ibans": [
     {
-      "id": "iban-001",
-      "masked": "SA** **** **** **** ***123",
-      "is_default": true
+      "iban": "SA3878000000001010892992",
+      "bankName": "STC Bank"
+    },
+    {
+      "iban": "SA5655000000083809900133",
+      "bankName": "Banque Saudi Fransi"
     }
   ],
   "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage3-uuid"

@@ -41,25 +41,23 @@ export default function IbanInputWidget({ payload, onSubmit, submitted }) {
   const { t } = useTranslation()
   const savedIbans = payload?.saved_ibans ?? []
   const ibanFailed = payload?.iban_verified === false
-  const hasSaved   = savedIbans.length > 0
+  const hasSaved   = payload?.has_saved_ibans === true && savedIbans.length > 0
 
-  // Default selection: is_default IBAN, or first saved, or NEW if none
-  const defaultSelection = hasSaved
-    ? (savedIbans.find((i) => i.is_default)?.id ?? savedIbans[0].id)
-    : NEW_IBAN_VALUE
+  // Default selection: first saved IBAN, or NEW if none
+  const defaultSelection = hasSaved ? savedIbans[0].iban : NEW_IBAN_VALUE
 
-  const [selectedId, setSelectedId] = useState(defaultSelection)
-  const [newIban, setNewIban]       = useState('')
-  const [error, setError]           = useState(null)
-  const [showModal, setShowModal]   = useState(!submitted)
+  const [selectedIban, setSelectedIban] = useState(defaultSelection)
+  const [newIban, setNewIban]           = useState('')
+  const [error, setError]               = useState(null)
+  const [showModal, setShowModal]       = useState(!submitted)
 
-  const isNewIban = selectedId === NEW_IBAN_VALUE
+  const isNewIban = selectedIban === NEW_IBAN_VALUE
 
   // ── Submitted read-only chip ─────────────────────────────────────────────
   if (submitted) {
     const displayIban = isNewIban
       ? maskIban(newIban)
-      : savedIbans.find((s) => s.id === selectedId)?.masked ?? ''
+      : maskIban(selectedIban)
     return (
       <div className="mx-4 my-2 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
         <svg className="h-5 w-5 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,9 +78,9 @@ export default function IbanInputWidget({ payload, onSubmit, submitted }) {
       setShowModal(false)
       onSubmit({ iban: newIban.replace(/\s/g, ''), iban_action: 'new_iban' })
     } else {
-      const chosen = savedIbans.find((s) => s.id === selectedId)
+      const chosen = savedIbans.find((s) => s.iban === selectedIban)
       setShowModal(false)
-      onSubmit({ iban: chosen?.masked, iban_action: 'use_existing', iban_id: selectedId })
+      onSubmit({ iban: chosen?.iban, iban_action: 'use_existing' })
     }
   }
 
@@ -121,12 +119,12 @@ export default function IbanInputWidget({ payload, onSubmit, submitted }) {
           {/* Dropdown — saved IBANs + "Enter a new IBAN" */}
           {hasSaved && (
             <select
-              value={selectedId}
-              onChange={(e) => { setSelectedId(e.target.value); setError(null) }}
+              value={selectedIban}
+              onChange={(e) => { setSelectedIban(e.target.value); setError(null) }}
               className="mb-3 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             >
               {savedIbans.map((s) => (
-                <option key={s.id} value={s.id}>{s.masked}</option>
+                <option key={s.iban} value={s.iban}>{s.bankName} — {maskIban(s.iban)}</option>
               ))}
               <option value={NEW_IBAN_VALUE}>{t('iban.modal.enterNew')}</option>
             </select>

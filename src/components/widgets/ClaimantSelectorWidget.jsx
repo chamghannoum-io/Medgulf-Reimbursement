@@ -5,7 +5,7 @@ export default function ClaimantSelectorWidget({ payload, onSubmit, submitted })
   const { t } = useTranslation()
   const dependents = payload?.dependents ?? []
   const [selectedId, setSelectedId] = useState(
-    () => dependents.find((d) => d.relation === 'self')?.id ?? null
+    () => dependents.find((d) => d.relation === 'self')?.id ?? dependents[0]?.id ?? null
   )
 
   if (submitted) {

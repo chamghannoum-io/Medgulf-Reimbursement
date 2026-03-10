@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next'
 export default function BenefitTypeSelectorWidget({ payload, onSubmit, submitted, isActive }) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState(null)
-  const [selectedDependent, setSelectedDependent] = useState(null)
-
   const benefitTypes = payload?.benefit_types || []
   const dependents = payload?.dependents || []
+  const [selectedDependent, setSelectedDependent] = useState(
+    () => dependents.find(d => d.relation === 'self')?.id ?? dependents[0]?.id ?? null
+  )
   const hasDependents = dependents.length > 0
   const canConfirm = selected && (!hasDependents || selectedDependent)
 
