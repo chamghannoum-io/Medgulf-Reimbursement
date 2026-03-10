@@ -40,6 +40,7 @@
       "prescriptionLabel": "الوصفة الطبية",
       "notesLabel": "ملاحظات المطالبة (اختياري)",
       "notesPlaceholder": "صف ما حدث أو أضف أي سياق…",
+      "notesComingSoon": "ملاحظات المطالبة — قريباً",
       "button": "رفع وتحليل",
       "hint": "PDF أو JPG أو PNG — بحد أقصى 10 ميغابايت لكل ملف",
       "minDocsHint": "مطلوب فاتورة واحدة على الأقل وتقرير طبي أو وصفة",
@@ -123,6 +124,7 @@
       "diagnosisPrimary": "رئيسي",
       "diagnosisSecondary": "ثانوي",
       "diagnosisEmpty": "لم يتم استخراج رموز تشخيصية.",
+      "diagnosisDescPlaceholder": "الوصف…",
       "serviceCode": "رمز الخدمة",
       "claimAmount": "المبلغ المطالب به (ر.س)",
       "VAT": "ضريبة القيمة المضافة (ر.س)",
@@ -141,6 +143,10 @@
     "snippet": {
       "title": "مقتطف المستند",
       "close": "إغلاق"
+    },
+    "detectedDocs": {
+      "title": "المستندات التي اكتشفها نظام التعرف الضوئي",
+      "confidence": "الثقة"
     },
     "error": {
       "required": "هذا الحقل مطلوب.",
@@ -166,8 +172,9 @@
       "title": "تأكيد تفاصيل الدفع",
       "sendingTo": "سيتم إرسال استرداد مطالبتك إلى:",
       "question": "هل تريد المتابعة بهذا الرقم أم تحديثه؟",
-      "proceed": "المتابعة بالـ IBAN الحالي",
-      "update": "تحديث رقم IBAN"
+      "proceed": "تأكيد رقم IBAN",
+      "update": "تحديث رقم IBAN",
+      "enterNew": "أدخل رقم آيبان جديد"
     },
     "error": {
       "length": "يجب أن يكون رقم IBAN 24 حرفًا.",

@@ -40,6 +40,7 @@
       "prescriptionLabel": "Prescription",
       "notesLabel": "Claim Notes (optional)",
       "notesPlaceholder": "Describe what happened or add any context…",
+      "notesComingSoon": "Claim notes — coming soon",
       "button": "Upload & Analyse",
       "hint": "PDF, JPG, PNG — max 10 MB per file",
       "minDocsHint": "At least one Invoice and one Medical Report or Prescription required",
@@ -123,6 +124,7 @@
       "diagnosisPrimary": "Primary",
       "diagnosisSecondary": "Secondary",
       "diagnosisEmpty": "No diagnosis codes extracted.",
+      "diagnosisDescPlaceholder": "Description…",
       "serviceCode": "Service Code",
       "claimAmount": "Claimed Amount (SAR)",
       "VAT": "VAT (SAR)",
@@ -141,6 +143,10 @@
     "snippet": {
       "title": "Document Snippet",
       "close": "Close"
+    },
+    "detectedDocs": {
+      "title": "Documents detected by OCR",
+      "confidence": "Confidence"
     },
     "error": {
       "required": "This field is required.",
@@ -166,8 +172,9 @@
       "title": "Payment Details Confirmation",
       "sendingTo": "Your claim reimbursement will be sent to:",
       "question": "Would you like to proceed with this IBAN or update it?",
-      "proceed": "Proceed with Current IBAN",
-      "update": "Update IBAN"
+      "proceed": "Confirm IBAN",
+      "update": "Update IBAN",
+      "enterNew": "Enter a new IBAN"
     },
     "error": {
       "length": "IBAN must be 24 characters.",

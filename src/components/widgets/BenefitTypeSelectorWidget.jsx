@@ -74,7 +74,7 @@ export default function BenefitTypeSelectorWidget({ payload, onSubmit, submitted
       <p className="mb-1 text-sm font-semibold text-gray-900">{t('benefitType.title')}</p>
       <p className="mb-3 text-xs text-gray-500">{t('benefitType.subtitle')}</p>
 
-      <div className="mb-4 grid grid-cols-4 gap-2">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {benefitTypes.map((bt) => {
           const label = t(`benefitType.options.${bt.value}`, { defaultValue: bt.label })
           const isSelected = selected === bt.value
@@ -84,7 +84,7 @@ export default function BenefitTypeSelectorWidget({ payload, onSubmit, submitted
               type="button"
               onClick={() => setSelected(bt.value)}
               className={[
-                'flex items-center justify-center rounded-xl border px-2 py-3 text-center text-xs font-medium leading-tight transition-colors',
+                'flex items-center justify-center rounded-xl border px-2 py-4 text-center text-xs font-medium leading-tight transition-colors',
                 isSelected
                   ? 'border-brand-500 bg-brand-50 text-brand-700'
                   : 'border-gray-200 bg-white text-gray-700 hover:border-brand-300 hover:bg-brand-50',

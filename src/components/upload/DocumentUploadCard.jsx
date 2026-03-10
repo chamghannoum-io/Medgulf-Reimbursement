@@ -159,7 +159,8 @@ function DocSlot({ doc, files, error, onFilesAdded, onFileRemoved, onPreview, t 
           : 'border-dashed border-gray-300 bg-white',
       ].join(' ')}
     >
-      <div className="flex items-start gap-3">
+      {/* Doc info row */}
+      <div className="flex items-start gap-2">
         <div className="mt-0.5 flex-shrink-0">
           {hasFiles ? <CheckIcon /> : <UploadIcon />}
         </div>
@@ -188,36 +189,36 @@ function DocSlot({ doc, files, error, onFilesAdded, onFileRemoved, onPreview, t 
             </div>
           )}
         </div>
+      </div>
 
-        {/* Upload buttons */}
-        <div className="flex flex-shrink-0 gap-1">
-          <button
-            type="button"
-            onClick={() => cameraInputRef.current?.click()}
-            title={t('upload.quick.camera')}
-            className={[
-              'flex items-center justify-center rounded-lg p-1.5 transition-colors',
-              hasFiles
-                ? 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
-                : 'bg-brand-600 text-white hover:bg-brand-700',
-            ].join(' ')}
-          >
-            <CameraIcon className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className={[
-              'flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-              hasFiles
-                ? 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-                : 'bg-brand-600 text-white hover:bg-brand-700',
-            ].join(' ')}
-          >
-            {hasFiles && <PlusIcon />}
-            {hasFiles ? t('upload.slot.addMore') : t('upload.slot.tapToUpload')}
-          </button>
-        </div>
+      {/* Upload buttons — own row for easy tap targets on mobile */}
+      <div className="mt-2 flex justify-end gap-1">
+        <button
+          type="button"
+          onClick={() => cameraInputRef.current?.click()}
+          title={t('upload.quick.camera')}
+          className={[
+            'flex items-center justify-center rounded-lg p-2 transition-colors',
+            hasFiles
+              ? 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+              : 'bg-brand-600 text-white hover:bg-brand-700',
+          ].join(' ')}
+        >
+          <CameraIcon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={[
+            'flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors',
+            hasFiles
+              ? 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              : 'bg-brand-600 text-white hover:bg-brand-700',
+          ].join(' ')}
+        >
+          {hasFiles && <PlusIcon />}
+          {hasFiles ? t('upload.slot.addMore') : t('upload.slot.tapToUpload')}
+        </button>
       </div>
 
       <input
@@ -450,7 +451,7 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
   // Quick: [{ id, file, objectUrl, labels: string[] }]
   const [quickFiles, setQuickFiles] = useState([])
 
-  const [claimNotes, setClaimNotes] = useState('')
+  const claimNotes = '' // disabled in current sprint
   const [uploading, setUploading] = useState(false)
   const [previewItem, setPreviewItem] = useState(null)
 
@@ -654,17 +655,17 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
           )}
         </div>
 
-        {/* Claim notes */}
+        {/* Claim notes — disabled in current sprint */}
         <div className="mb-4">
-          <label className="mb-1 block text-xs font-medium text-gray-600">
+          <label className="mb-1 block text-xs font-medium text-gray-400">
             {t('upload.card.notesLabel')}
           </label>
           <textarea
             rows={2}
-            value={claimNotes}
-            onChange={(e) => setClaimNotes(e.target.value)}
-            placeholder={t('upload.card.notesPlaceholder')}
-            className="w-full resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            value=""
+            disabled
+            placeholder={t('upload.card.notesComingSoon')}
+            className="w-full cursor-not-allowed resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-400 opacity-60"
           />
         </div>
 

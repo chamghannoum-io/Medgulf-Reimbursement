@@ -69,7 +69,6 @@ function normalizeDateForDisplay(raw) {
 function parseDiagnosisEntry(str) {
   if (!str) return null
   const s = String(str).trim()
-  // "F90.0, Description (Primary|Secondary)"
   const full = s.match(/^([A-Z]\d+\.?\d*)\s*,?\s*(.*?)\s*\((Primary|Secondary)\)\s*$/i)
   if (full) {
     return {
@@ -79,12 +78,10 @@ function parseDiagnosisEntry(str) {
       raw: s,
     }
   }
-  // "F90.0, Description" (no classification marker) — treat as Secondary unless it's the only one
   const noClass = s.match(/^([A-Z]\d+\.?\d*)\s*,?\s*(.+)$/)
   if (noClass) {
     return { code: noClass[1].trim(), description: noClass[2].trim(), classification: null, raw: s }
   }
-  // Code only
   const codeOnly = s.match(/^([A-Z]\d+\.?\d*)$/)
   if (codeOnly) {
     return { code: codeOnly[1].trim(), description: '', classification: null, raw: s }
@@ -92,11 +89,18 @@ function parseDiagnosisEntry(str) {
   return { code: s, description: '', classification: null, raw: s }
 }
 
+/** Rebuild a raw diagnosis string from its parts */
+function buildDiagnosisRaw(code, description, classification) {
+  let s = code.trim()
+  if (description.trim()) s += `, ${description.trim()}`
+  if (classification) s += ` (${classification})`
+  return s
+}
+
 /** Coerce raw diagnosis_code value (string or array) to an array of raw strings. */
 function toCodeArray(raw) {
   if (!raw) return []
   if (Array.isArray(raw)) return raw.map(String).filter(Boolean)
-  // newline-separated from n8n
   return String(raw).split(/\n+/).map((s) => s.trim()).filter(Boolean)
 }
 
@@ -165,42 +169,24 @@ function ViewImageButton({ src, label }) {
 }
 
 /**
- * Grouped diagnosis display.
- * Primary diagnosis gets an indigo badge; secondary get blue.
- * Items without a classification are treated as secondary.
+ * Editable diagnosis code list.
+ * Each code renders as a row with editable inputs for code text and description.
  */
 function DiagnosisCodeField({ codes, onChange }) {
   const { t } = useTranslation()
   const parsed = codes.map(parseDiagnosisEntry).filter(Boolean)
 
-  const primary   = parsed.filter((d) => d.classification === 'Primary')
-  const secondary = parsed.filter((d) => d.classification !== 'Primary')
-
-  function removeCode(rawStr) {
-    onChange(codes.filter((c) => c !== rawStr))
+  function handleCodeChange(index, field, value) {
+    const entry = parsed[index]
+    const newCode = field === 'code' ? value : entry.code
+    const newDesc = field === 'description' ? value : entry.description
+    const newRaw = buildDiagnosisRaw(newCode, newDesc, entry.classification)
+    const newCodes = codes.map((raw, i) => (i === index ? newRaw : raw))
+    onChange(newCodes)
   }
 
-  function DiagChip({ entry, variant }) {
-    const base = variant === 'primary'
-      ? 'bg-indigo-50 border-indigo-200 text-indigo-800'
-      : 'bg-blue-50 border-blue-200 text-blue-800'
-    const xColor = variant === 'primary' ? 'text-indigo-400 hover:text-indigo-700' : 'text-blue-400 hover:text-blue-700'
-    return (
-      <span className={`inline-flex items-start gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${base}`}>
-        <span className="font-semibold shrink-0 mt-0.5">{entry.code}</span>
-        {entry.description && (
-          <span className="leading-snug">{entry.description}</span>
-        )}
-        <button
-          type="button"
-          onClick={() => removeCode(entry.raw)}
-          className={`ml-1 shrink-0 mt-0.5 leading-none ${xColor}`}
-          aria-label={`Remove ${entry.code}`}
-        >
-          ×
-        </button>
-      </span>
-    )
+  function removeCode(index) {
+    onChange(codes.filter((_, i) => i !== index))
   }
 
   if (parsed.length === 0) {
@@ -210,27 +196,87 @@ function DiagnosisCodeField({ codes, onChange }) {
   }
 
   return (
-    <div className="space-y-2.5">
-      {primary.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-indigo-500">
-            {t('form.fields.diagnosisPrimary')}
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {primary.map((d) => <DiagChip key={d.raw} entry={d} variant="primary" />)}
+    <div className="space-y-2">
+      {parsed.map((entry, index) => {
+        const badgeClass = entry.classification === 'Primary'
+          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+          : 'bg-blue-50 text-blue-700 border-blue-200'
+
+        return (
+          <div key={index} className="flex items-start gap-1.5 rounded-xl border border-gray-200 bg-gray-50 p-2">
+            {/* Code input */}
+            <input
+              type="text"
+              value={entry.code}
+              onChange={(e) => handleCodeChange(index, 'code', e.target.value.toUpperCase())}
+              className="w-20 shrink-0 rounded-lg border border-gray-300 bg-white px-2 py-1 font-mono text-xs text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              aria-label="Diagnosis code"
+            />
+            {/* Description input */}
+            <input
+              type="text"
+              value={entry.description}
+              onChange={(e) => handleCodeChange(index, 'description', e.target.value)}
+              placeholder={t('form.fields.diagnosisDescPlaceholder')}
+              className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              aria-label="Diagnosis description"
+            />
+            {/* Classification badge */}
+            {entry.classification && (
+              <span className={`shrink-0 self-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${badgeClass}`}>
+                {entry.classification}
+              </span>
+            )}
+            {/* Remove */}
+            <button
+              type="button"
+              onClick={() => removeCode(index)}
+              className="shrink-0 self-center rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+              aria-label={`Remove ${entry.code}`}
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        </div>
-      )}
-      {secondary.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-blue-500">
-            {t('form.fields.diagnosisSecondary')}
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {secondary.map((d) => <DiagChip key={d.raw} entry={d} variant="secondary" />)}
+        )
+      })}
+    </div>
+  )
+}
+
+/** OCR-detected documents section shown above the submit button */
+function DetectedDocumentsSection({ docs }) {
+  const { t } = useTranslation()
+  if (!docs || docs.length === 0) return null
+
+  function confidencePill(conf) {
+    const pct = Math.round((conf ?? 0) * 100)
+    const color = pct >= 90
+      ? 'bg-green-100 text-green-700'
+      : pct >= 70
+      ? 'bg-amber-100 text-amber-700'
+      : 'bg-red-100 text-red-700'
+    return (
+      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${color}`}>
+        {pct}%
+      </span>
+    )
+  }
+
+  return (
+    <div className="mx-4 mb-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+        {t('form.detectedDocs.title')}
+      </p>
+      <div className="space-y-1.5">
+        {docs.map((doc, i) => (
+          <div key={i} className="flex items-center justify-between gap-2">
+            <span className="text-xs text-gray-700">{doc.label}</span>
+            {confidencePill(doc.confidence)}
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   )
 }
@@ -241,6 +287,7 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   const { t } = useTranslation()
   const extracted = payload?.extracted_data ?? {}
   const snippets = extracted.image_snippets ?? {}
+  const detectedDocs = payload?.detected_documents ?? []
 
   const [values, setValues] = useState(() => {
     const base = Object.fromEntries(FIELD_KEYS.map((k) => [k, extracted[k] ?? '']))
@@ -252,16 +299,12 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   const [errors, setErrors]               = useState({})
   const [confirmedValues, setConfirmedValues] = useState(null)
 
-  // Computed once from the immutable extracted payload — avoids re-running
-  // normalizeDateForDisplay / toCodeArray on every render inside the field map
   const originalValues = useMemo(() => {
     const base = Object.fromEntries(FIELD_KEYS.map((k) => [k, extracted[k] ?? '']))
     base.service_date   = normalizeDateForDisplay(extracted.service_date)
     base.diagnosis_code = toCodeArray(extracted.diagnosis_code)
     return base
   }, [extracted])
-
-  const hasAnySnippet = FIELD_KEYS.some((k) => snippets[k])
 
   const validate = useCallback(() => {
     const errs = {}
@@ -289,8 +332,6 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
     setConfirmedValues(values)
     onSubmit({ ...values, is_user_edited: isUserEdited })
   }, [validate, values, isUserEdited, onSubmit])
-
-  const colClass = hasAnySnippet ? 'grid-cols-[9rem_1fr_6.5rem]' : 'grid-cols-[9rem_1fr]'
 
   // ── Submitted read-only view ──
   if (submitted && confirmedValues) {
@@ -342,12 +383,6 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
         <p className="text-xs text-gray-500 mt-0.5">{t('form.subtitle')}</p>
       </div>
 
-      <div className={`grid border-b border-gray-100 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 ${colClass}`}>
-        <span>{t('form.fieldColumn')}</span>
-        <span />
-        {hasAnySnippet && <span className="text-center">{t('form.imageColumn')}</span>}
-      </div>
-
       <div className="divide-y divide-gray-100">
         {FIELD_KEYS.map((key) => {
           const isReadOnly = READ_ONLY_FIELDS.includes(key)
@@ -362,12 +397,11 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
             : val !== originalVal
 
           return (
-            <div key={key} className={`grid items-start gap-3 px-4 py-3 ${colClass}`}>
-
-              {/* Label + badges */}
-              <div className="pt-0.5 min-w-0">
-                <p className="text-xs font-medium text-gray-700 leading-snug">{label}</p>
-                <div className="mt-1 flex flex-wrap gap-1">
+            <div key={key} className="flex flex-col gap-1 px-4 py-3">
+              {/* Label row */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p className="text-xs font-medium text-gray-700 leading-snug">{label}</p>
                   {isReadOnly && (
                     <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{t('form.readOnly')}</span>
                   )}
@@ -378,6 +412,8 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
                     <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700">{t('form.editedBadge')}</span>
                   )}
                 </div>
+                {/* Snippet button inline with label */}
+                {snippet && <ViewImageButton src={snippet} label={label} />}
               </div>
 
               {/* Input */}
@@ -414,19 +450,15 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
                 )}
                 {errors[key] && <p className="mt-0.5 text-xs text-red-600">{errors[key]}</p>}
               </div>
-
-              {/* Snippet button */}
-              {hasAnySnippet && (
-                <div className="flex items-start justify-center pt-1">
-                  <ViewImageButton src={snippet} label={label} />
-                </div>
-              )}
             </div>
           )
         })}
       </div>
 
-      <div className="px-4 pb-4 pt-3">
+      {/* OCR-detected documents */}
+      <DetectedDocumentsSection docs={detectedDocs} />
+
+      <div className="px-4 pb-4 pt-1">
         <button
           type="button"
           onClick={handleSubmit}

@@ -149,7 +149,7 @@ export default function ChatWindow() {
 
       {/* Notification panel (simple overlay) */}
       {notificationsOpen && (
-        <div className="absolute end-4 top-16 z-10 w-80 rounded-xl border border-gray-200 bg-white shadow-lg">
+        <div className="absolute end-4 top-16 z-10 w-[calc(100vw-2rem)] max-w-xs rounded-xl border border-gray-200 bg-white shadow-lg sm:w-80">
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
             <p className="text-sm font-semibold text-gray-900">{t('notifications.centre')}</p>
             <button

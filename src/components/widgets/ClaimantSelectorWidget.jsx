@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next'
 export default function ClaimantSelectorWidget({ payload, onSubmit, submitted }) {
   const { t } = useTranslation()
   const dependents = payload?.dependents ?? []
-  const [selectedId, setSelectedId] = useState(null)
+  const [selectedId, setSelectedId] = useState(
+    () => dependents.find((d) => d.relation === 'self')?.id ?? null
+  )
 
   if (submitted) {
     const chosen = dependents.find((d) => d.id === selectedId)
