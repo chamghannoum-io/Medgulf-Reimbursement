@@ -167,12 +167,16 @@ function DocSlot({ doc, files, error, onFilesAdded, onFileRemoved, onPreview, t 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-gray-900">{doc.label}</span>
-            <span className={[
-              'rounded-full px-2 py-0.5 text-xs font-medium',
-              doc.required ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500',
-            ].join(' ')}>
-              {doc.required ? t('upload.slot.required') : t('upload.slot.optional')}
-            </span>
+            {doc.required ? (
+              <span className="flex items-center gap-0.5 text-xs font-semibold text-red-600">
+                <span aria-hidden="true">*</span>
+                {t('upload.slot.required')}
+              </span>
+            ) : (
+              <span className="text-xs italic text-gray-400">
+                {t('upload.slot.optional')}
+              </span>
+            )}
           </div>
           <p className="mt-0.5 text-xs leading-snug text-gray-500">{doc.description}</p>
           {error && !hasFiles && <p className="mt-1 text-xs text-red-600">{error}</p>}

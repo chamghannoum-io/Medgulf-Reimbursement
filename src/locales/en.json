@@ -17,7 +17,7 @@
       "disabled": "Claim submitted — thread is read-only"
     },
     "typing": "Assistant is typing…",
-    "greeting": "Hello, {{name}}! I'm your Medgulf Smart Assistant. How can I help you today?",
+    "greeting": "Hello! I'm your Medgulf Smart Assistant. How can I help you today?",
     "quickActions": {
       "label": "Quick actions",
       "submitClaim": "Submit a claim",

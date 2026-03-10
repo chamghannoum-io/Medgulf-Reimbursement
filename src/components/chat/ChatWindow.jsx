@@ -36,9 +36,7 @@ export default function ChatWindow() {
     if (initialised.current) return
     initialised.current = true
 
-    const fullName = session.language === 'ar' ? session.full_name_ar : session.full_name_en
-    const firstName = fullName.split(' ')[0]
-    flow.addMessage('assistant_text', { message: t('chat.greeting', { name: firstName }) })
+    flow.addMessage('assistant_text', { message: t('chat.greeting') })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
