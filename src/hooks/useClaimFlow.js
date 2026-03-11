@@ -209,6 +209,11 @@ export function useClaimFlow() {
     [session, state.resumeUrl, dispatch]
   )
 
+  /** Reset the entire claim flow back to initial state */
+  const resetChat = useCallback(() => {
+    dispatch({ type: 'RESET' })
+  }, [dispatch])
+
   /** Retry the last failed request */
   const retryLast = useCallback(() => {
     const req = state.lastFailedRequest
@@ -241,6 +246,7 @@ export function useClaimFlow() {
     submitIban,
     submitFinal,
     retryLast,
+    resetChat,
     addMessage,
   }
 }

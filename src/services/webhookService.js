@@ -1,7 +1,7 @@
 const BASE_URL = import.meta.env.VITE_WEBHOOK_BASE_URL
 const INITIAL_PATH = import.meta.env.VITE_INITIAL_WEBHOOK_PATH
 const TIMEOUT_MS = 30_000
-const OCR_TIMEOUT_MS = 120_000 // OCR can take up to 2 minutes
+const OCR_TIMEOUT_MS = 300_000 // OCR can take up to 5 minutes
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true'
 
 // ---------------------------------------------------------------------------

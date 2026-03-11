@@ -530,8 +530,9 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
     setQuickFiles((prev) =>
       prev.map((f) => {
         if (f.id !== fileId) return f
-        const has = f.labels.includes(labelKey)
-        return { ...f, labels: has ? f.labels.filter((l) => l !== labelKey) : [...f.labels, labelKey] }
+        // Single-select: tap the active label to deselect, tap another to replace
+        const isActive = f.labels.includes(labelKey)
+        return { ...f, labels: isActive ? [] : [labelKey] }
       })
     )
   }
@@ -671,6 +672,14 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
             placeholder={t('upload.card.notesComingSoon')}
             className="w-full cursor-not-allowed resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-400 opacity-60"
           />
+        </div>
+
+        {/* One-doc-per-file info */}
+        <div className="mb-3 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5">
+          <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-xs leading-snug text-blue-700">{t('upload.oneDocHint')}</p>
         </div>
 
         <button

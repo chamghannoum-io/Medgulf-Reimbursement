@@ -53,6 +53,12 @@ export default function ChatWindow() {
     return -1
   }, [flow.messages])
 
+  const handleNewChat = useCallback(() => {
+    flow.resetChat()
+    flow.addMessage('assistant_text', { message: t('chat.greeting') })
+    setQuickActionsVisible(true)
+  }, [flow.resetChat, flow.addMessage, t])
+
   // Stable function reference — only changes when the flow submit methods change
   const getOnSubmit = useCallback((message) => (data) => {
     switch (message.type) {
@@ -81,6 +87,9 @@ export default function ChatWindow() {
       case 'confirmation_dialog':
         flow.submitFinal(data, message.id)
         break
+      case 'success_card':
+        handleNewChat()
+        break
       default:
         break
     }
@@ -93,6 +102,7 @@ export default function ChatWindow() {
     flow.submitIban,
     flow.submitWarning,
     flow.submitFinal,
+    handleNewChat,
   ])
 
   function handleRetry() {

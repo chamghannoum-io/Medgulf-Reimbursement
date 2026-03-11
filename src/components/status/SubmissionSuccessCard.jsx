@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-const SubmissionSuccessCard = React.memo(function SubmissionSuccessCard({ payload }) {
+const SubmissionSuccessCard = React.memo(function SubmissionSuccessCard({ payload, onSubmit }) {
   const { t } = useTranslation()
   const claimId = payload?.claim_id ?? '—'
   const processingType = payload?.processing_type
@@ -33,6 +33,16 @@ const SubmissionSuccessCard = React.memo(function SubmissionSuccessCard({ payloa
       </div>
 
       <p className="text-xs text-green-600">{t('success.notification')}</p>
+
+      {onSubmit && (
+        <button
+          type="button"
+          onClick={onSubmit}
+          className="mt-4 w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+        >
+          {t('success.newClaim')}
+        </button>
+      )}
     </div>
   )
 })

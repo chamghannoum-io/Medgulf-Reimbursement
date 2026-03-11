@@ -124,6 +124,9 @@ function claimReducer(state, action) {
     case 'CLEAR_LAST_REQUEST':
       return { ...state, lastFailedRequest: null }
 
+    case 'RESET':
+      return { ...INITIAL_STATE }
+
     default:
       return state
   }

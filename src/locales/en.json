@@ -75,6 +75,7 @@
       "title": "Guided Upload",
       "recommended": "Recommended"
     },
+    "oneDocHint": "Each file must contain one document only — do not combine multiple documents into a single image or scan.",
     "quick": {
       "title": "Quick Upload",
       "camera": "Take Photo",
@@ -225,7 +226,8 @@
     "message": "Your reimbursement request has been submitted successfully. It will be processed within the stated timeframe.",
     "processingType": "Processing type",
     "timestamp": "Submitted at",
-    "notification": "You will receive updates in your notification centre as your claim progresses."
+    "notification": "You will receive updates in your notification centre as your claim progresses.",
+    "newClaim": "Start a new claim"
   },
   "benefitType": {
     "title": "Select Benefit Type",
