@@ -64,24 +64,46 @@ function normalizeDateForDisplay(raw) {
 
 /**
  * Parse a single diagnosis string into { code, description, classification }.
- * Handles: "F90.0, Description (Primary)" or "F90.0" or "F90.0 Description"
+ * Handles:
+ *   "O82 - Single delivery by caesarean section"  (dash-separated)
+ *   "F90.0, Description (Primary)"                (comma-separated with classification)
+ *   "F90.0, Description"                          (comma-separated)
+ *   "F90.0"                                       (code only)
  */
 function parseDiagnosisEntry(str) {
   if (!str) return null
   const s = String(str).trim()
-  const full = s.match(/^([A-Z]\d+\.?\d*)\s*,?\s*(.*?)\s*\((Primary|Secondary)\)\s*$/i)
-  if (full) {
+  // With classification: "CODE - Description (Primary)"
+  const fullDash = s.match(/^([A-Z]\d+\.?\d*)\s+-\s+(.*?)\s*\((Primary|Secondary)\)\s*$/i)
+  if (fullDash) {
     return {
-      code: full[1].trim(),
-      description: full[2].trim(),
-      classification: full[3].charAt(0).toUpperCase() + full[3].slice(1).toLowerCase(),
+      code: fullDash[1].trim(),
+      description: fullDash[2].trim(),
+      classification: fullDash[3].charAt(0).toUpperCase() + fullDash[3].slice(1).toLowerCase(),
       raw: s,
     }
   }
-  const noClass = s.match(/^([A-Z]\d+\.?\d*)\s*,?\s*(.+)$/)
-  if (noClass) {
-    return { code: noClass[1].trim(), description: noClass[2].trim(), classification: null, raw: s }
+  // Dash separator: "CODE - Description"
+  const dashSep = s.match(/^([A-Z]\d+\.?\d*)\s+-\s+(.+)$/)
+  if (dashSep) {
+    return { code: dashSep[1].trim(), description: dashSep[2].trim(), classification: null, raw: s }
   }
+  // Comma with classification: "CODE, Description (Primary)"
+  const fullComma = s.match(/^([A-Z]\d+\.?\d*)\s*,\s*(.*?)\s*\((Primary|Secondary)\)\s*$/i)
+  if (fullComma) {
+    return {
+      code: fullComma[1].trim(),
+      description: fullComma[2].trim(),
+      classification: fullComma[3].charAt(0).toUpperCase() + fullComma[3].slice(1).toLowerCase(),
+      raw: s,
+    }
+  }
+  // Comma separator: "CODE, Description"
+  const commaSep = s.match(/^([A-Z]\d+\.?\d*)\s*,\s*(.+)$/)
+  if (commaSep) {
+    return { code: commaSep[1].trim(), description: commaSep[2].trim(), classification: null, raw: s }
+  }
+  // Code only
   const codeOnly = s.match(/^([A-Z]\d+\.?\d*)$/)
   if (codeOnly) {
     return { code: codeOnly[1].trim(), description: '', classification: null, raw: s }
@@ -97,11 +119,20 @@ function buildDiagnosisRaw(code, description, classification) {
   return s
 }
 
-/** Coerce raw diagnosis_code value (string or array) to an array of raw strings. */
+/** Coerce raw diagnosis_code value (string or array) to an array of raw strings.
+ *  Handles comma-separated codes within a single string, e.g.:
+ *  "O82 - Description one, O84.2 - Description two"
+ */
 function toCodeArray(raw) {
   if (!raw) return []
-  if (Array.isArray(raw)) return raw.map(String).filter(Boolean)
-  return String(raw).split(/\n+/).map((s) => s.trim()).filter(Boolean)
+  const strings = Array.isArray(raw) ? raw.map(String) : String(raw).split(/\n+/)
+  const result = []
+  strings.forEach((s) => {
+    // Split on ", " only when followed by an ICD code pattern (letter + digit)
+    const parts = s.split(/,\s*(?=[A-Z]\d)/)
+    parts.forEach((p) => { if (p.trim()) result.push(p.trim()) })
+  })
+  return result.filter(Boolean)
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
@@ -197,6 +228,15 @@ function DiagnosisCodeField({ codes, onChange }) {
 
   return (
     <div className="space-y-2">
+      {/* Column headers */}
+      <div className="flex items-center gap-1.5 px-2">
+        <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+          {t('form.icdCodeColumn')}
+        </span>
+        <span className="flex-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+          {t('form.descriptionColumn')}
+        </span>
+      </div>
       {parsed.map((entry, index) => {
         const badgeClass = entry.classification === 'Primary'
           ? 'bg-indigo-50 text-indigo-700 border-indigo-200'

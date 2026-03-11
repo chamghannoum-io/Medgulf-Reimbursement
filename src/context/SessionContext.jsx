@@ -8,15 +8,8 @@ export function SessionProvider({ children }) {
   const [session, setSession] = useState(null)
 
   useEffect(() => {
-    // Load from mock for dev; swap this with a real auth token lookup in prod.
-    // session_id is unique per browser session — used by n8n for conversation memory.
     const loaded = { ...mockSession, session_id: crypto.randomUUID() }
     setSession(loaded)
-
-    const lang = loaded.language || 'en'
-    i18n.changeLanguage(lang)
-    document.documentElement.lang = lang
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
   }, [])
 
   function changeLanguage(lang) {

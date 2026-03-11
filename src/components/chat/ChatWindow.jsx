@@ -36,7 +36,7 @@ export default function ChatWindow() {
     if (initialised.current) return
     initialised.current = true
 
-    flow.addMessage('assistant_text', { message: t('chat.greeting') })
+    flow.addMessage('assistant_text', { translationKey: 'chat.greeting' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -55,7 +55,7 @@ export default function ChatWindow() {
 
   const handleNewChat = useCallback(() => {
     flow.resetChat()
-    flow.addMessage('assistant_text', { message: t('chat.greeting') })
+    flow.addMessage('assistant_text', { translationKey: 'chat.greeting' })
     setQuickActionsVisible(true)
   }, [flow.resetChat, flow.addMessage, t])
 

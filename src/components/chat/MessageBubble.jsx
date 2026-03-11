@@ -5,11 +5,13 @@ import medgulfLogo from '../../assets/medgulf-logo.jpg'
 const MessageBubble = React.memo(function MessageBubble({ payload, side = 'left' }) {
   const { t } = useTranslation()
   const isLeft = side === 'left'
-  const message = payload?.message ?? (payload?.isError ? t('chat.error.generic') : '')
+  const message = payload?.translationKey
+    ? t(payload.translationKey)
+    : payload?.message ?? (payload?.isError ? t('chat.error.generic') : '')
 
   return (
     <div
-      className={`flex items-end gap-2 px-4 py-1 ${isLeft ? 'justify-start' : 'flex-row-reverse rtl:flex-row'}`}
+      className={`flex items-end gap-2 px-4 py-1 ${isLeft ? 'justify-start' : 'flex-row-reverse'}`}
     >
       {/* Avatar — assistant only */}
       {isLeft && (
@@ -21,7 +23,7 @@ const MessageBubble = React.memo(function MessageBubble({ payload, side = 'left'
       <div
         className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
           isLeft
-            ? 'rounded-bl-none bg-white text-gray-800'
+            ? 'rounded-bl-none bg-white text-gray-800 rtl:rounded-bl-2xl rtl:rounded-br-none'
             : 'rounded-br-none bg-brand-600 text-white rtl:rounded-br-2xl rtl:rounded-bl-none'
         } ${payload?.isError ? 'border border-red-200 bg-red-50 text-red-700' : ''}`}
       >
