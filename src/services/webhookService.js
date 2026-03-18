@@ -37,8 +37,7 @@ function normalisedResponse(raw) {
     data.resumeWebhookUrl ??
     data.webhookUrl ??
     null
-  console.log('[webhookService] response type:', data.type, '| resumeUrl:', resumeUrl)
-  return { data, resumeUrl }
+return { data, resumeUrl }
 }
 
 async function mockPost(resumeUrl) {
