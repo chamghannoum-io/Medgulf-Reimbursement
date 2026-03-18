@@ -127,9 +127,10 @@
       "diagnosisEmpty": "لم يتم استخراج رموز تشخيصية.",
       "diagnosisDescPlaceholder": "الوصف…",
       "serviceCode": "رمز الخدمة",
-      "claimAmount": "المبلغ المطالب به (ر.س)",
-      "VAT": "ضريبة القيمة المضافة (ر.س)",
-      "deductible": "المبلغ المقتطع (ر.س)",
+      "currency": "العملة",
+      "claimAmount": "المبلغ المطالب به",
+      "VAT": "ضريبة القيمة المضافة",
+      "deductible": "المبلغ المقتطع",
       "claimNotes": "ملاحظات المطالبة",
       "benefitCategory": "فئة المزايا"
     },
@@ -204,8 +205,18 @@
   },
   "financial": {
     "title": "الملخص المالي",
+    "claimDetails": "تفاصيل المطالبة",
+    "dateOfTreatment": "تاريخ العلاج",
+    "provider": "مقدم الخدمة",
+    "benefitCategory": "فئة المزايا",
     "claimAmount": "المبلغ المطالب به",
+    "currencyConversion": "تحويل العملة",
+    "originalAmount": "المبلغ الأصلي",
+    "convertedAmount": "المحوَّل إلى ر.س",
+    "exchangeRate": "سعر الصرف",
+    "rateDate": "تاريخ السعر",
     "VAT": "ضريبة القيمة المضافة",
+    "vatNotReimbursed": "غير قابل للاسترداد",
     "deductible": "المبلغ المقتطع",
     "coInsurance": "التأمين المشترك",
     "coInsuranceNil": "لا يوجد",
@@ -214,14 +225,32 @@
     "currency": "ر.س",
     "ibanLabel": "حساب الدفع",
     "ibanVerified": "موثّق",
+    "ibanChange": "تغيير",
+    "ibanNote": "سيتم إرسال الدفعة إلى هذا الحساب عند الموافقة. تأكد من صحته قبل التقديم.",
     "policyDetails": "تفاصيل الوثيقة",
     "policyNumber": "رقم الوثيقة",
     "insuredName": "اسم المؤمَّن",
+    "plan": "الخطة",
     "insClass": "الفئة",
+    "annualLimit": "الحد السنوي",
+    "limitUsed": "مستخدم",
+    "validUntil": "صلاحية الوثيقة حتى",
     "roomType": "نوع الغرفة",
     "preApprovalLimit": "حد الموافقة المسبقة",
+    "documents": "المستندات المرفوعة",
+    "manualReviewBadge": "مراجعة يدوية",
+    "manualReviewWhy": "لماذا تمت الإشارة إلى هذه المطالبة؟",
     "disclaimer": "هذا تقدير وليس ضمانًا للدفع. لن يتم استرداد المبلغ المقتطع وضريبة القيمة المضافة في حال الموافقة.",
     "submit": "تقديم المطالبة",
+    "coverageStatus": {
+      "Fully_Covered": "مغطى بالكامل",
+      "Partial": "مغطى جزئيًا",
+      "Not_Covered": "غير مغطى"
+    },
+    "clarity": {
+      "Clear": "واضح",
+      "Low_Clarity": "وضوح منخفض"
+    },
     "processingType": {
       "Standard": "معالجة قياسية",
       "Manual_Review_Required": "تتطلب مراجعة يدوية"
@@ -240,7 +269,17 @@
     "processingType": "نوع المعالجة",
     "timestamp": "وقت التقديم",
     "notification": "ستتلقى تحديثات في مركز الإشعارات مع تقدم مطالبتك.",
-    "newClaim": "تقديم مطالبة جديدة"
+    "newClaim": "تقديم مطالبة جديدة",
+    "manualReview": {
+      "title": "تتطلب مراجعة يدوية",
+      "intro": "تمت الإشارة إلى مطالبتك للمراجعة اليدوية للأسباب التالية:",
+      "note": "ملاحظة",
+      "ok": "حسنًا، فهمت",
+      "reasons": {
+        "LOW_OCR_CONFIDENCE": "دقة منخفضة في التعرف الضوئي على الحروف لحقل أو أكثر",
+        "CLAIMANT_NAME_MISMATCH": "اسم مقدم المطالبة لا يطابق سجل الوثيقة"
+      }
+    }
   },
   "benefitType": {
     "title": "اختر نوع المزايا",

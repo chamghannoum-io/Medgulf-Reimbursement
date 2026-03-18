@@ -127,9 +127,10 @@
       "diagnosisEmpty": "No diagnosis codes extracted.",
       "diagnosisDescPlaceholder": "Description…",
       "serviceCode": "Service Code",
-      "claimAmount": "Claimed Amount (SAR)",
-      "VAT": "VAT (SAR)",
-      "deductible": "Deductible (SAR)",
+      "currency": "Currency",
+      "claimAmount": "Claimed Amount",
+      "VAT": "VAT",
+      "deductible": "Deductible",
       "claimNotes": "Claim Notes",
       "benefitCategory": "Benefit Category"
     },
@@ -204,8 +205,18 @@
   },
   "financial": {
     "title": "Financial Summary",
+    "claimDetails": "Claim Details",
+    "dateOfTreatment": "Date of Treatment",
+    "provider": "Provider",
+    "benefitCategory": "Benefit Category",
     "claimAmount": "Claimed Amount",
+    "currencyConversion": "Currency Conversion",
+    "originalAmount": "Original Amount",
+    "convertedAmount": "Converted to SAR",
+    "exchangeRate": "Exchange Rate",
+    "rateDate": "Rate Date",
     "VAT": "VAT",
+    "vatNotReimbursed": "Not reimbursed",
     "deductible": "Deductible",
     "coInsurance": "Co-Insurance",
     "coInsuranceNil": "NIL",
@@ -214,14 +225,32 @@
     "currency": "SAR",
     "ibanLabel": "Payment Account",
     "ibanVerified": "Verified",
+    "ibanChange": "Change",
+    "ibanNote": "Payment will be sent to this account upon approval. Confirm this is correct before submitting.",
     "policyDetails": "Policy Details",
     "policyNumber": "Policy Number",
     "insuredName": "Insured Name",
+    "plan": "Plan",
     "insClass": "Class",
+    "annualLimit": "Annual Limit",
+    "limitUsed": "used",
+    "validUntil": "Policy Valid Until",
     "roomType": "Room Type",
     "preApprovalLimit": "Pre-Approval Limit",
-    "disclaimer": "This is an estimate and not a guarantee of payment. Deductible and VAT will not be reimbursed if approved.",
+    "documents": "Submitted Documents",
+    "manualReviewBadge": "Manual Review",
+    "manualReviewWhy": "Why is this flagged for manual review?",
+    "disclaimer": "This is an estimate and not a guarantee of payment. Deductible and VAT amounts will not be reimbursed if approved.",
     "submit": "Submit Claim",
+    "coverageStatus": {
+      "Fully_Covered": "Fully Covered",
+      "Partial": "Partial",
+      "Not_Covered": "Not Covered"
+    },
+    "clarity": {
+      "Clear": "Clear",
+      "Low_Clarity": "Low clarity"
+    },
     "processingType": {
       "Standard": "Standard processing",
       "Manual_Review_Required": "Manual review required"
@@ -240,7 +269,17 @@
     "processingType": "Processing type",
     "timestamp": "Submitted at",
     "notification": "You will receive updates in your notification centre as your claim progresses.",
-    "newClaim": "Start a new claim"
+    "newClaim": "Start a new claim",
+    "manualReview": {
+      "title": "Manual Review Required",
+      "intro": "Your claim has been flagged for manual review due to the following:",
+      "note": "Note",
+      "ok": "OK, I understand",
+      "reasons": {
+        "LOW_OCR_CONFIDENCE": "Low confidence detected on one or more extracted fields",
+        "CLAIMANT_NAME_MISMATCH": "Claimant name does not match the policy record"
+      }
+    }
   },
   "benefitType": {
     "title": "Select Benefit Type",

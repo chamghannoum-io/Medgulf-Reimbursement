@@ -1,11 +1,43 @@
 {
   "type": "financial_summary",
-  "iban_verified": true,
-  "estimated_payout": 622.50,
-  "processing_type": "Standard",
   "currency": "SAR",
-  "claim_amount": 850.00,
-  "VAT": 127.50,
-  "deductible": 100.00,
+  "processing_type": "Manual_Review_Required",
+  "coverage_status": "Fully_Covered",
+  "pre_approval_warning": {
+    "title": "Pre-approval may be required",
+    "message": "This claim (17,500.00 SAR) exceeds your pre-approval threshold of 1,500 SAR. If prior authorization was not obtained before treatment, this claim may be subject to manual review or rejection. Please ensure you have a pre-approval reference number."
+  },
+  "claim_details": {
+    "date_of_treatment": "14 Feb 2026",
+    "provider_name": "Saudi German Hospital, Riyadh",
+    "benefit_category": "Inpatient"
+  },
+  "claim_breakdown": {
+    "claim_amount": 17500.00,
+    "vat": 0,
+    "deductible": 0,
+    "co_insurance_share": 0,
+    "estimated_payout": 17500.00
+  },
+  "co_insurance": {
+    "is_nil": true,
+    "nil_description": "Hospital visits fully covered"
+  },
+  "submitted_documents": [
+    { "label": "Hospital Invoice", "filename": "invoice_SGH_feb2026.pdf", "clarity": "Clear" },
+    { "label": "Medical Report", "filename": "discharge_summary.pdf", "clarity": "Clear" },
+    { "label": "Prescription", "filename": "prescription_scan.jpg", "clarity": "Low_Clarity" }
+  ],
+  "iban": "SA3878000000001010892992",
+  "iban_verified": true,
+  "policy": {
+    "policy_number": "GRH/22423099",
+    "insured_name": "Akram Ghanem Kheir",
+    "plan": "Standard Plan (Class C)",
+    "annual_limit": 1000000,
+    "limit_used": 0,
+    "valid_until": "31 Dec 2026"
+  },
+  "manual_review_note": "One or more documents had low clarity during scanning. This claim will be reviewed by our team within 3–5 business days.",
   "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage4-uuid"
 }

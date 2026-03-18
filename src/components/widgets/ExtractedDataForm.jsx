@@ -9,7 +9,7 @@ const REQUIRED_FIELDS = [
   'claim_amount',
 ]
 
-const READ_ONLY_FIELDS = ['policy_number', 'benefit_category']
+const READ_ONLY_FIELDS = ['policy_number', 'benefit_category', 'currency']
 const NUMERIC_FIELDS   = ['claim_amount', 'VAT', 'deductible']
 
 const FIELD_KEYS = [
@@ -20,6 +20,7 @@ const FIELD_KEYS = [
   'service_date',
   'diagnosis_code',
   'service_code',
+  'currency',
   'claim_amount',
   'VAT',
   'deductible',
@@ -35,6 +36,7 @@ const FIELD_I18N = {
   service_date:     'form.fields.serviceDate',
   diagnosis_code:   'form.fields.diagnosisCode',
   service_code:     'form.fields.serviceCode',
+  currency:         'form.fields.currency',
   claim_amount:     'form.fields.claimAmount',
   VAT:              'form.fields.VAT',
   deductible:       'form.fields.deductible',
@@ -406,7 +408,11 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs font-medium text-green-800">{v}</p>
+                  <p className="text-xs font-medium text-green-800">
+                    {NUMERIC_FIELDS.includes(k) && confirmedValues.currency
+                      ? `${v} ${confirmedValues.currency}`
+                      : v}
+                  </p>
                 )}
               </div>
             )
@@ -479,6 +485,20 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
                     onChange={(e) => handleChange(key, e.target.value)}
                     className={fieldClass(false, !!errors[key])}
                   />
+                ) : NUMERIC_FIELDS.includes(key) ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={val}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      className={fieldClass(false, !!errors[key])}
+                    />
+                    {values.currency && (
+                      <span className="shrink-0 rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 text-xs font-semibold text-gray-500">
+                        {values.currency}
+                      </span>
+                    )}
+                  </div>
                 ) : (
                   <input
                     type="text"
