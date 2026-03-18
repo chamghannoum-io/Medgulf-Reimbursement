@@ -168,19 +168,7 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
   }
 
   const coInsVal = coInsuranceValue()
-
-  if (submitted || confirmed) {
-    return (
-      <div className="mx-4 my-2 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        <span className="text-sm text-green-700">
-          {t('financial.title')} — {formatCurrency(estimated_payout, currency)}
-        </span>
-      </div>
-    )
-  }
+  const isReadOnly = submitted || confirmed
 
   function handleSubmit() {
     setConfirmed(true)
@@ -243,21 +231,12 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-blue-600">{t('financial.convertedAmount')}</span>
                 <span className="font-mono text-xs font-semibold text-blue-700">
-                  {formatCurrency(originalClaim.converted_amount, originalClaim.converted_currency)}
+                  ~ {formatCurrency(originalClaim.converted_amount, originalClaim.converted_currency)}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-blue-500">{t('financial.exchangeRate')}</span>
-                <span className="font-mono text-xs text-blue-600">
-                  1 {originalClaim.currency} = {originalClaim.rate} {originalClaim.converted_currency}
-                </span>
-              </div>
-              {originalClaim.date && (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-blue-400">{t('financial.rateDate')}</span>
-                  <span className="text-xs text-blue-500">{originalClaim.date}</span>
-                </div>
-              )}
+              <p className="text-[10px] leading-relaxed text-blue-400 pt-0.5">
+                {t('financial.conversionDisclaimer')}
+              </p>
             </div>
           )}
           {deductible != null && (
@@ -315,13 +294,15 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
                   {t('financial.ibanVerified')}
                 </span>
               )}
-              <button
-                type="button"
-                onClick={() => onSubmit('change_iban')}
-                className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
-              >
-                {t('financial.ibanChange')}
-              </button>
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={() => onSubmit('change_iban')}
+                  className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
+                >
+                  {t('financial.ibanChange')}
+                </button>
+              )}
             </div>
           </div>
           <p className="mt-1.5 text-xs text-gray-400">{t('financial.ibanNote')}</p>
@@ -378,15 +359,22 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
         </div>
       )}
 
-      {/* ── Submit ── */}
+      {/* ── Submit / Confirmed ── */}
       <div className="px-4 pb-4 pt-3">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-        >
-          {t('financial.submit')}
-        </button>
+        {isReadOnly ? (
+          <div className="flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-2.5">
+            <CheckIcon className="h-4 w-4 text-green-600" />
+            <span className="text-sm font-semibold text-green-700">{t('financial.confirmed')}</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            {t('financial.submit')}
+          </button>
+        )}
       </div>
     </div>
   )

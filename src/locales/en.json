@@ -59,6 +59,7 @@
       "fileSize": "File must be under 10 MB.",
       "minDocs": "Please upload at least one Invoice and one Medical Report or Prescription."
     },
+    "submitted": "Uploaded",
     "progress": {
       "uploading": "Uploading…",
       "done": "Upload complete"
@@ -138,6 +139,7 @@
     "optional": "Optional",
     "required": "Required",
     "editedBadge": "Edited",
+    "confirmed": "Confirmed",
     "confirm": "Confirm & Continue",
     "fieldColumn": "Field",
     "imageColumn": "Image",
@@ -212,9 +214,8 @@
     "claimAmount": "Claimed Amount",
     "currencyConversion": "Currency Conversion",
     "originalAmount": "Original Amount",
-    "convertedAmount": "Converted to SAR",
-    "exchangeRate": "Exchange Rate",
-    "rateDate": "Rate Date",
+    "convertedAmount": "Approx. in SAR",
+    "conversionDisclaimer": "Converted amount is an estimate based on the exchange rate at time of submission and may differ from the final reimbursed amount.",
     "VAT": "VAT",
     "vatNotReimbursed": "Not reimbursed",
     "deductible": "Deductible",
@@ -241,6 +242,7 @@
     "manualReviewBadge": "Manual Review",
     "manualReviewWhy": "Why is this flagged for manual review?",
     "disclaimer": "This is an estimate and not a guarantee of payment. Deductible and VAT amounts will not be reimbursed if approved.",
+    "confirmed": "Claim Submitted",
     "submit": "Submit Claim",
     "coverageStatus": {
       "Fully_Covered": "Fully Covered",
@@ -285,7 +287,8 @@
     "title": "Select Benefit Type",
     "subtitle": "Choose the type of medical benefit for this claim.",
     "confirm": "Confirm",
-    "selected": "Selected",
+    "confirmed": "Confirmed",
+    "selected": "Benefit Type",
     "forWhom": {
       "label": "Who is this claim for?",
       "subtitle": "Select the person who received the medical service.",

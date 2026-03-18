@@ -577,14 +577,50 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
 
   // ── Submitted state ──
   if (submitted) {
-    const count =
-      Object.values(slotFiles).reduce((s, arr) => s + arr.length, 0) + quickFiles.length
+    const allFiles = [
+      ...Object.entries(slotFiles).flatMap(([key, items]) => {
+        const doc = requiredDocs.find((d) => d.key === key)
+        return items.map((item) => ({ ...item, docLabel: doc?.label ?? null }))
+      }),
+      ...quickFiles.map((item) => ({
+        ...item,
+        docLabel: item.labels.length > 0
+          ? item.labels.map((lk) => requiredDocs.find((d) => d.key === lk)?.label ?? lk).join(', ')
+          : null,
+      })),
+    ]
     return (
-      <div className="mx-4 my-2 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-        <CheckIcon />
-        <span className="text-sm text-green-700">
-          {count} {t('upload.progress.done')}
-        </span>
+      <div className="mx-4 my-2 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-900">{t('upload.card.title')}</p>
+          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+            <CheckIcon className="h-3 w-3 text-green-600" />
+            {t('upload.submitted')}
+          </span>
+        </div>
+        <div className="space-y-2">
+          {allFiles.map((item) => (
+            <div key={item.id} className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+              {item.file.type.startsWith('image/') && item.objectUrl ? (
+                <img src={item.objectUrl} alt="" className="h-8 w-8 flex-shrink-0 rounded object-cover" />
+              ) : (
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-red-100 text-[10px] font-bold text-red-600">
+                  PDF
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-gray-800">{item.file.name}</p>
+                <p className="text-[10px] text-gray-400">{(item.file.size / 1024).toFixed(0)} KB</p>
+              </div>
+              {item.docLabel && (
+                <span className="shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
+                  {item.docLabel}
+                </span>
+              )}
+              <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

@@ -13,24 +13,32 @@ export default function BenefitTypeSelectorWidget({ payload, onSubmit, submitted
   const canConfirm = selected && (!hasDependents || selectedDependent)
 
   if (submitted) {
-    const depName = hasDependents
-      ? dependents.find(d => d.id === selectedDependent)?.name
-      : null
+    const dep = hasDependents ? dependents.find(d => d.id === selectedDependent) : null
+    const depName = dep?.name ?? null
+    const selectedLabel = t(`benefitType.options.${selected}`, { defaultValue: selected })
     return (
-      <div className="mx-4 my-2 flex flex-col gap-1 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <svg className="h-5 w-5 flex-shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          <span className="text-sm text-green-700">
-            {t('benefitType.selected')}: <span className="font-semibold">{t(`benefitType.options.${selected}`, { defaultValue: selected })}</span>
+      <div className="mx-4 my-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <p className="text-sm font-semibold text-gray-900">{t('benefitType.title')}</p>
+          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+            {t('benefitType.confirmed')}
           </span>
         </div>
-        {depName && (
-          <span className="ps-7 text-xs text-green-600">
-            {t('benefitType.forWhom.forLabel')}: <span className="font-medium">{depName}</span>
-          </span>
-        )}
+        <div className="divide-y divide-gray-100">
+          <div className="flex items-center justify-between px-4 py-2.5">
+            <span className="text-xs font-medium text-gray-500">{t('benefitType.selected')}</span>
+            <span className="text-xs font-semibold text-gray-800">{selectedLabel}</span>
+          </div>
+          {depName && (
+            <div className="flex items-center justify-between px-4 py-2.5 pb-4">
+              <span className="text-xs font-medium text-gray-500">{t('benefitType.forWhom.forLabel')}</span>
+              <span className="text-xs font-semibold text-gray-800">{depName}</span>
+            </div>
+          )}
+        </div>
       </div>
     )
   }

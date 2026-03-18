@@ -378,41 +378,47 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   // ── Submitted read-only view ──
   if (submitted && confirmedValues) {
     return (
-      <div className="mx-4 my-2 rounded-2xl border border-green-200 bg-green-50 p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          <p className="text-sm font-semibold text-green-700">{t('form.title')}</p>
+      <div className="mx-4 my-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{t('form.title')}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('form.subtitle')}</p>
+          </div>
+          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+            {t('form.confirmed')}
+          </span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="divide-y divide-gray-100">
           {FIELD_KEYS.filter((k) => {
             const v = confirmedValues[k]
             return Array.isArray(v) ? v.length > 0 : Boolean(v)
           }).map((k) => {
             const v = confirmedValues[k]
             return (
-              <div key={k} className={k === 'diagnosis_code' ? 'col-span-2' : 'col-span-1'}>
-                <p className="text-xs text-green-600 mb-0.5">{t(FIELD_I18N[k])}</p>
+              <div key={k} className="flex items-start justify-between gap-4 px-4 py-2.5">
+                <span className="shrink-0 text-xs font-medium text-gray-500">{t(FIELD_I18N[k])}</span>
                 {Array.isArray(v) ? (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap justify-end gap-1">
                     {v.map((raw, i) => {
                       const d = parseDiagnosisEntry(raw)
                       return (
-                        <span key={i} className="inline-flex items-center gap-1.5 rounded-md bg-green-200 px-2 py-0.5 text-xs font-medium text-green-900">
+                        <span key={i} className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
                           <span className="font-semibold">{d?.code ?? raw}</span>
-                          {d?.description && <span>{d.description}</span>}
+                          {d?.description && <span className="text-gray-500">{d.description}</span>}
                           {d?.classification && <span className="opacity-60">({d.classification})</span>}
                         </span>
                       )
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs font-medium text-green-800">
+                  <span className="text-right text-xs font-semibold text-gray-800">
                     {NUMERIC_FIELDS.includes(k) && confirmedValues.currency
                       ? `${v} ${confirmedValues.currency}`
                       : v}
-                  </p>
+                  </span>
                 )}
               </div>
             )

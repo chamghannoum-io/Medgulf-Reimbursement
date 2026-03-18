@@ -53,22 +53,8 @@ export default function IbanInputWidget({ payload, onSubmit, submitted }) {
 
   const isNewIban = selectedIban === NEW_IBAN_VALUE
 
-  // ── Submitted read-only chip ─────────────────────────────────────────────
-  if (submitted) {
-    const displayIban = isNewIban
-      ? maskIban(newIban)
-      : maskIban(selectedIban)
-    return (
-      <div className="mx-4 my-2 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-        <svg className="h-5 w-5 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        <span className="text-sm text-green-700">
-          {t('iban.verified')}: {displayIban}
-        </span>
-      </div>
-    )
-  }
+  // ── Submitted: render nothing — IBAN is shown in the financial summary ──
+  if (submitted) return null
 
   function handleConfirm() {
     if (isNewIban) {
