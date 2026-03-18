@@ -22,6 +22,11 @@ const SubmissionSuccessCard = React.memo(function SubmissionSuccessCard({ payloa
       ? rawNote
       : rawNote.summary ?? rawNote.title ?? null
 
+  // Prefer detailed human-readable reasons from the note object; fall back to coded keys
+  const detailedReasons = typeof rawNote === 'object' && rawNote?.reasons?.length > 0
+    ? rawNote.reasons
+    : null
+
   const [showReviewBanner, setShowReviewBanner] = useState(isManualReview)
 
   return (
@@ -46,12 +51,12 @@ const SubmissionSuccessCard = React.memo(function SubmissionSuccessCard({ payloa
             <p className="mb-3 text-xs text-gray-500">{t('success.manualReview.intro')}</p>
 
             {/* Reasons list */}
-            {payload?.manual_review_reasons?.length > 0 && (
+            {(detailedReasons ?? payload?.manual_review_reasons)?.length > 0 && (
               <ul className="mb-3 space-y-1.5">
-                {payload.manual_review_reasons.map((reason) => (
-                  <li key={reason} className="flex items-start gap-2 text-xs text-gray-700">
+                {(detailedReasons ?? payload.manual_review_reasons).map((reason, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
                     <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
-                    {REASON_KEYS[reason] ? t(REASON_KEYS[reason]) : reason}
+                    {detailedReasons ? reason : (REASON_KEYS[reason] ? t(REASON_KEYS[reason]) : reason)}
                   </li>
                 ))}
               </ul>
