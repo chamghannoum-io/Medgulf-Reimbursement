@@ -2,6 +2,9 @@
   "app": {
     "title": "Medgulf Smart Assistant"
   },
+  "common": {
+    "okGotIt": "OK, Got it"
+  },
   "chat": {
     "header": {
       "title": "Smart Assistant",

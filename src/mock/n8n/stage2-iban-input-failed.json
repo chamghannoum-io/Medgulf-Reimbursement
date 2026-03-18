@@ -1,0 +1,21 @@
+{
+  "type": "iban_input",
+  "warning_banner": {
+    "type": "error",
+    "title": "IBAN could not be verified",
+    "message": "The IBAN you entered could not be verified with your bank. Please check the number and try again."
+  },
+  "message": "Please select a saved bank account or enter a new IBAN for reimbursement.",
+  "has_saved_ibans": true,
+  "saved_ibans": [
+    {
+      "iban": "SA3878000000001010892992",
+      "bankName": "STC Bank"
+    },
+    {
+      "iban": "SA5655000000083809900133",
+      "bankName": "Banque Saudi Fransi"
+    }
+  ],
+  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage3-uuid"
+}

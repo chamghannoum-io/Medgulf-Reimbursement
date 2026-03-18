@@ -15,6 +15,7 @@ const MOCK_RESUME_MAP = {
   'mock-resume-stage2':    () => import('../mock/n8n/stage2-iban-input.json'),
   'mock-stage2-uuid':      () => import('../mock/n8n/stage2-iban-input.json'),
   'mock-warning-uuid':     () => import('../mock/n8n/stage2-iban-input.json'),
+  'mock-iban-failed-uuid': () => import('../mock/n8n/stage2-iban-input-failed.json'),
   'mock-resume-stage3':    () => import('../mock/n8n/stage2-iban-input.json'),
   'mock-stage3-uuid':      () => import('../mock/n8n/stage3-financial-summary.json'),
   'mock-resume-stage4':    () => import('../mock/n8n/stage3-financial-summary.json'),
