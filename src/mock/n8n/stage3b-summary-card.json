@@ -1,0 +1,30 @@
+{
+  "output": "Review your claim summary, confirm your bank account, and submit when ready.",
+  "updated_stage": "S4_SUMMARY",
+  "updated_claim": {
+    "financial": {
+      "claim_amount": 1500,
+      "vat": 0,
+      "deductible": 0,
+      "co_insurance_share": 0,
+      "total_deductions": 0,
+      "estimated_payout": 1500,
+      "remaining_coverage": 1000000,
+      "currency": "SAR",
+      "original_amount": null,
+      "original_currency": null,
+      "exchange_rate": null,
+      "exchange_rate_date": null,
+      "disclaimer": "*This is an estimate and not a guarantee of payment.*"
+    },
+    "iban": {
+      "selected": "SA3878000000001010892992",
+      "selected_bank": "STC Bank",
+      "saved_ibans": [
+        { "iban": "SA3878000000001010892992", "bank_name": "STC Bank" },
+        { "iban": "SA5655000000083809900133", "bank_name": "Banque Saudi Fransi" }
+      ],
+      "has_saved": true
+    }
+  }
+}

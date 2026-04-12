@@ -50,8 +50,9 @@ const VALID_TRANSITIONS = {
   GREETING:            ['S1_BENEFIT_SELECTOR'],
   S1_BENEFIT_SELECTOR: ['S2_DOC_UPLOAD', 'DRAFT_SAVED'],
   S2_DOC_UPLOAD:       ['S3_OCR_REVIEW', 'DRAFT_SAVED'],
-  S3_OCR_REVIEW:       ['S3_OCR_REVIEW', 'S4_IBAN', 'DRAFT_SAVED'],
+  S3_OCR_REVIEW:       ['S3_OCR_REVIEW', 'S4_IBAN', 'S4_SUMMARY', 'DRAFT_SAVED'],
   S4_IBAN:             ['S4_IBAN', 'S5_FINANCIAL_SUMMARY', 'DRAFT_SAVED'],
+  S4_SUMMARY:          ['SUBMITTING', 'DRAFT_SAVED'],
   S5_FINANCIAL_SUMMARY:['SUBMITTING', 'DRAFT_SAVED'],
   SUBMITTING:          ['COMPLETED'],
   COMPLETED:           [],
@@ -97,6 +98,15 @@ function claimReducer(state, action) {
           m.id === action.payload ? { ...m, submitted: true } : m
         ),
       }
+    }
+
+    // Remove all messages that appear after the given message ID (exclusive).
+    // Used when re-editing OCR data so the stale summary card is cleared before
+    // n8n sends a fresh one.
+    case 'REMOVE_MESSAGES_AFTER': {
+      const idx = state.messages.findIndex((m) => m.id === action.payload)
+      if (idx === -1) return state
+      return { ...state, messages: state.messages.slice(0, idx + 1) }
     }
 
     case 'MERGE_CLAIM_DATA':

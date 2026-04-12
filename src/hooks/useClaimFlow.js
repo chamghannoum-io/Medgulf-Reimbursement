@@ -9,6 +9,7 @@ const STAGE_TO_WIDGET_TYPE = {
   S2_DOC_UPLOAD:        'document_upload',
   S3_OCR_REVIEW:        'extracted_form',
   S4_IBAN:              'iban_input',
+  S4_SUMMARY:           'summary_card',
   S5_FINANCIAL_SUMMARY: 'financial_summary',
   COMPLETED:            'success_card',
 }
@@ -61,9 +62,24 @@ export function useClaimFlow() {
       dispatch({ type: 'SET_FLOW_STATE', payload: updated_stage })
     }
 
-    // 4. Assistant text bubble
-    if (output) {
-      addMessage('assistant_text', { message: output })
+    // 4. Parse output — n8n may send the widget payload as a stringified JSON in
+    //    the output field instead of (or in addition to) updated_claim.
+    //    If output is a JSON string, parse it and use it as the widget payload.
+    let parsedOutput = null
+    let displayMessage = output
+    if (typeof output === 'string' && output.trimStart().startsWith('{')) {
+      try {
+        parsedOutput = JSON.parse(output)
+        // The parsed object may carry a human-readable "message" field — use that
+        // as the assistant bubble text instead of the raw JSON
+        displayMessage = parsedOutput.message ?? null
+      } catch {
+        // Not valid JSON — treat as plain text
+      }
+    }
+
+    if (displayMessage) {
+      addMessage('assistant_text', { message: displayMessage })
     }
 
     // 5. Widget bubble for interactive stages
@@ -77,9 +93,10 @@ export function useClaimFlow() {
             processing_type: updated_claim?.processing_type,
           },
         })
-        addMessage('success_card', { ...updated_claim, message: output })
+        addMessage('success_card', { ...updated_claim, message: displayMessage })
       } else {
-        addMessage(widgetType, updated_claim ?? {})
+        // Prefer parsed widget payload from output; fall back to updated_claim
+        addMessage(widgetType, parsedOutput ?? updated_claim ?? {})
       }
     }
   }
@@ -156,10 +173,16 @@ export function useClaimFlow() {
     [session, state.access_token, dispatch]
   )
 
-  /** S3 — ExtractedDataForm confirms or edits OCR data */
+  /** S3 — ExtractedDataForm confirms or edits OCR data.
+   *  The form calls onSubmit({ ...fieldValues, is_user_edited }) — a flat spread.
+   *  We pull is_user_edited out and treat the rest as extracted_data.
+   *  On re-submission (user edited after confirming), trim the stale summary
+   *  card and any messages that followed it so n8n can replace them cleanly. */
   const submitForm = useCallback(
-    ({ extracted_data, is_user_edited }, messageId) => {
+    (formData, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
+      dispatch({ type: 'REMOVE_MESSAGES_AFTER', payload: messageId })
+      const { is_user_edited, ...extracted_data } = formData
       return withLoading(
         () => webhookService.postOcrConfirmed(session, extracted_data, is_user_edited),
         { type: 'ocrConfirmed', extracted_data, is_user_edited }
@@ -180,14 +203,16 @@ export function useClaimFlow() {
     [session, dispatch]
   )
 
-  /** S5 — FinancialSummaryCard confirms submission */
+  /** S4_SUMMARY / S5 — Combined summary card or financial summary confirms submission */
   const submitFinal = useCallback(
-    (_, messageId) => {
+    (data, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
+      // If the user changed IBAN inline, carry it through; otherwise just submit
+      const ibanOverride = data?.iban ?? null
       dispatch({ type: 'SET_FLOW_STATE', payload: 'SUBMITTING' })
       return withLoading(
-        () => webhookService.postSubmitConfirmed(session),
-        { type: 'submitConfirmed' }
+        () => webhookService.postSubmitConfirmed(session, ibanOverride),
+        { type: 'submitConfirmed', iban: ibanOverride }
       )
     },
     [session, dispatch]
@@ -207,7 +232,7 @@ export function useClaimFlow() {
       case 'action':           return sendAction(req.action, req.payload, req.displayText)
       case 'benefitSelected':  return submitBenefitType({ benefit_type: req.benefit_type, for_dependent_id: req.for_dependent_id, for_dependent_name: req.for_dependent_name })
       case 'documentsUploaded':return submitDocumentUpload({ documents: req.documents })
-      case 'ocrConfirmed':     return submitForm({ extracted_data: req.extracted_data, is_user_edited: req.is_user_edited })
+      case 'ocrConfirmed':     return submitForm({ ...req.extracted_data, is_user_edited: req.is_user_edited })
       case 'ibanSelected':     return submitIban({ iban: req.iban, iban_action: req.iban_action, bank_name: req.bank_name })
       case 'submitConfirmed':  return submitFinal(null)
       default: break

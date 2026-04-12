@@ -19,6 +19,7 @@ const WIDGET_TYPES = new Set([
   'iban_input',
   'warning_banner',
   'financial_summary',
+  'summary_card',
   'confirmation_dialog',
 ])
 
@@ -75,6 +76,7 @@ export default function ChatWindow() {
         flow.submitIban(data, message.id)
         break
       case 'financial_summary':
+      case 'summary_card':
         flow.submitFinal(data, message.id)
         break
       case 'success_card':
@@ -185,14 +187,12 @@ export default function ChatWindow() {
             </div>
           )}
 
-        {/* Loading indicator — show ProcessingSteps only while waiting for the first OCR response;
-            once the processing_steps message is in the thread it handles its own animation */}
-        {flow.isLoading && (() => {
-          const hasProcessingStepsMsg = flow.messages.some((m) => m.type === 'processing_steps')
-          return flow.claimFlowState === 'ANALYZING_DOCS' && !hasProcessingStepsMsg
-            ? <ProcessingSteps submitted={false} onSubmit={null} />
+        {/* Loading indicator — show ProcessingSteps while waiting for OCR after doc upload */}
+        {flow.isLoading && (
+          flow.claimFlowState === 'S2_DOC_UPLOAD'
+            ? <ProcessingSteps submitted={false} />
             : <TypingIndicator />
-        })()}
+        )}
 
         <div ref={bottomRef} />
       </div>

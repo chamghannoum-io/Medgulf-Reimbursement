@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { maskIban } from '../../utils/maskIban'
@@ -124,38 +124,209 @@ function DocRow({ doc, t }) {
   )
 }
 
+// ─── IBAN selector (inline) ────────────────────────────────────────────────────
+
+function IbanSelector({ ibanData, selectedIban, onSelect, readOnly }) {
+  const { t } = useTranslation()
+  // changing: user clicked "Change" — show the selector UI
+  const [changing, setChanging] = useState(false)
+  // showNewInput: user picked "Enter new IBAN" from the dropdown
+  const [showNewInput, setShowNewInput] = useState(false)
+  const [newIban, setNewIban] = useState('')
+  const [ibanError, setIbanError] = useState('')
+
+  const hasSaved = ibanData?.has_saved && ibanData.saved_ibans?.length > 0
+
+  if (readOnly) {
+    return (
+      <p className="font-mono text-sm font-semibold tracking-wide text-gray-800">
+        {maskIban(selectedIban)}
+      </p>
+    )
+  }
+
+  function validateAndSelect() {
+    const clean = newIban.trim().toUpperCase().replace(/\s/g, '')
+    if (!clean) { setIbanError(t('iban.error.required')); return }
+    if (clean.length !== 24) { setIbanError(t('iban.error.length')); return }
+    if (!/^[A-Z]{2}[A-Z0-9]{22}$/.test(clean)) { setIbanError(t('iban.error.format')); return }
+    onSelect(clean)
+    setChanging(false)
+    setShowNewInput(false)
+    setNewIban('')
+  }
+
+  function cancel() {
+    setChanging(false)
+    setShowNewInput(false)
+    setNewIban('')
+    setIbanError('')
+  }
+
+  // ── New IBAN text input ──
+  if (changing && showNewInput) {
+    return (
+      <div className="space-y-2">
+        <input
+          type="text"
+          value={newIban}
+          onChange={(e) => { setNewIban(e.target.value.toUpperCase()); setIbanError('') }}
+          placeholder={t('iban.input.placeholder')}
+          maxLength={24}
+          autoFocus
+          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        />
+        {ibanError && <p className="text-xs text-red-600">{ibanError}</p>}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={validateAndSelect}
+            className="flex-1 rounded-xl bg-brand-600 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+          >
+            {t('iban.confirm')}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowNewInput(false); setIbanError('') }}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-50"
+          >
+            {t('common.cancel')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Saved IBAN dropdown (shown when changing, or always if has saved) ──
+  if (changing && hasSaved) {
+    return (
+      <div className="space-y-2">
+        <select
+          defaultValue={selectedIban}
+          onChange={(e) => {
+            if (e.target.value === '__new__') {
+              setShowNewInput(true)
+            } else {
+              onSelect(e.target.value)
+              setChanging(false)
+            }
+          }}
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 font-mono text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        >
+          {ibanData.saved_ibans.map((item) => (
+            <option key={item.iban} value={item.iban}>
+              {item.bank_name} — {maskIban(item.iban)}
+            </option>
+          ))}
+          <option value="__new__">{t('iban.addNew')}</option>
+        </select>
+        <button
+          type="button"
+          onClick={cancel}
+          className="text-xs font-medium text-gray-400 hover:text-gray-600"
+        >
+          {t('common.cancel')}
+        </button>
+      </div>
+    )
+  }
+
+  // ── No saved IBANs but changing — go straight to text input ──
+  if (changing && !hasSaved) {
+    return (
+      <div className="space-y-2">
+        <input
+          type="text"
+          value={newIban}
+          onChange={(e) => { setNewIban(e.target.value.toUpperCase()); setIbanError('') }}
+          placeholder={t('iban.input.placeholder')}
+          maxLength={24}
+          autoFocus
+          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        />
+        {ibanError && <p className="text-xs text-red-600">{ibanError}</p>}
+        <div className="flex gap-2">
+          <button type="button" onClick={validateAndSelect}
+            className="flex-1 rounded-xl bg-brand-600 py-2 text-xs font-semibold text-white hover:bg-brand-700">
+            {t('iban.confirm')}
+          </button>
+          <button type="button" onClick={cancel}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-50">
+            {t('common.cancel')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Default: show masked IBAN + Change button ──
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <p className="font-mono text-sm font-semibold tracking-wide text-gray-800">
+        {maskIban(selectedIban)}
+      </p>
+      <button
+        type="button"
+        onClick={() => setChanging(true)}
+        className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
+      >
+        {t('financial.ibanChange')}
+      </button>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
   const { t } = useTranslation()
   const [confirmed, setConfirmed] = useState(false)
 
-  const currency        = payload?.currency ?? 'SAR'
-  const processingType  = payload?.processing_type
-  const isManualReview  = processingType === 'Manual_Review_Required'
+  // ── Normalise payload — support both new shape (summary_card) and old shape ──
+  // New shape: { financial: {...}, iban: { selected, saved_ibans, ... }, message }
+  // Old shape: { claim_breakdown, iban (string), policy, ... }
+  const isNewShape = !!(payload?.financial)
 
-  // Support both nested claim_breakdown and flat top-level fields
+  const fin = isNewShape ? (payload.financial ?? {}) : {}
+  const ibanData = isNewShape ? (payload.iban ?? {}) : null
+
+  const currency         = fin.currency ?? payload?.currency ?? 'SAR'
+  const processingType   = payload?.processing_type
+  const isManualReview   = processingType === 'Manual_Review_Required'
+
+  // Financial figures — new shape first, fall back to old shape
   const bd               = payload?.claim_breakdown ?? {}
-  const claim_amount     = bd.claim_amount     ?? payload?.claim_amount
-  const vat              = bd.vat              ?? payload?.VAT
-  const deductible       = bd.deductible       ?? payload?.deductible
-  const co_insurance_share = bd.co_insurance_share ?? payload?.co_insurance_share
-  const total_deductions = bd.total_deductions ?? payload?.total_deductions
-  const estimated_payout = bd.estimated_payout ?? payload?.estimated_payout
+  const claim_amount     = fin.claim_amount     ?? bd.claim_amount     ?? payload?.claim_amount
+  const vat              = fin.vat              ?? bd.vat              ?? payload?.VAT
+  const deductible       = fin.deductible       ?? bd.deductible       ?? payload?.deductible
+  const co_insurance_share = fin.co_insurance_share ?? bd.co_insurance_share ?? payload?.co_insurance_share
+  const total_deductions = fin.total_deductions ?? bd.total_deductions ?? payload?.total_deductions
+  const estimated_payout = fin.estimated_payout ?? bd.estimated_payout ?? payload?.estimated_payout
+  const disclaimer       = fin.disclaimer ?? null
 
-  const originalClaim   = payload?.original_claim ?? null
-  const coInsurance     = payload?.co_insurance
-  const policy          = payload?.policy
-  const eCard           = payload?.e_card
-  const iban            = payload?.iban
-  const ibanVerified    = payload?.iban_verified
-  const claimDetails    = payload?.claim_details
-  const coverageStatus  = payload?.coverage_status
-  const submittedDocs   = payload?.submitted_documents ?? []
-  const preApprovalWarn = payload?.pre_approval_warning
+  // Currency conversion (old shape only — new shape nulls these out)
+  const hasConversion    = fin.original_amount != null || payload?.original_claim != null
+  const originalClaim    = hasConversion
+    ? (payload?.original_claim ?? { amount: fin.original_amount, currency: fin.original_currency, converted_amount: fin.estimated_payout, converted_currency: currency })
+    : null
+
+  // Old-shape extras
+  const coInsurance      = payload?.co_insurance
+  const policy           = payload?.policy
+  const eCard            = payload?.e_card
+  const claimDetails     = payload?.claim_details
+  const coverageStatus   = payload?.coverage_status
+  const submittedDocs    = payload?.submitted_documents ?? []
+  const preApprovalWarn  = payload?.pre_approval_warning
   const manualReviewNote = payload?.manual_review_note
 
-  // Co-insurance display value
+  // IBAN state — for new shape: starts with pre-selected, user can change
+  const [selectedIban, setSelectedIban] = useState(
+    ibanData?.selected ?? payload?.iban ?? null
+  )
+
+  const isReadOnly = submitted || confirmed
+
   function coInsuranceValue() {
     if (coInsurance) {
       if (coInsurance.is_nil) {
@@ -168,17 +339,16 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
   }
 
   const coInsVal = coInsuranceValue()
-  const isReadOnly = submitted || confirmed
 
   function handleSubmit() {
     setConfirmed(true)
-    onSubmit('submit')
+    onSubmit(isNewShape ? { iban: selectedIban } : 'submit')
   }
 
   return (
     <div className="mx-4 my-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-      {/* ── Pre-approval warning ── */}
+      {/* ── Pre-approval warning (old shape) ── */}
       {preApprovalWarn && (
         <div className="flex gap-3 border-b border-red-100 bg-red-50 px-4 py-3">
           <WarnIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
@@ -189,7 +359,7 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
         </div>
       )}
 
-      {/* ── Claim Details ── */}
+      {/* ── Claim Details (old shape) ── */}
       {claimDetails && (
         <div className="border-b border-gray-100 px-4 py-3">
           <SectionHeader title={t('financial.claimDetails')} />
@@ -263,11 +433,13 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
         </div>
         <div className="mt-3 flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5">
           <InfoIcon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
-          <p className="text-xs leading-relaxed text-gray-500">{t('financial.disclaimer')}</p>
+          <p className="text-xs leading-relaxed text-gray-500">
+            {disclaimer ?? t('financial.disclaimer')}
+          </p>
         </div>
       </div>
 
-      {/* ── Submitted Documents ── */}
+      {/* ── Submitted Documents (old shape) ── */}
       {submittedDocs.length > 0 && (
         <div className="border-b border-gray-100 px-4 py-3">
           <SectionHeader title={t('financial.documents')} />
@@ -280,36 +452,20 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
       )}
 
       {/* ── Payment Account (IBAN) ── */}
-      {iban && (
+      {selectedIban && (
         <div className="border-b border-gray-100 px-4 py-3">
           <SectionHeader title={t('financial.ibanLabel')} />
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-mono text-sm font-semibold tracking-wide text-gray-800">
-              {maskIban(iban)}
-            </p>
-            <div className="flex flex-shrink-0 items-center gap-2">
-              {ibanVerified && (
-                <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                  <CheckIcon />
-                  {t('financial.ibanVerified')}
-                </span>
-              )}
-              {!isReadOnly && (
-                <button
-                  type="button"
-                  onClick={() => onSubmit('change_iban')}
-                  className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
-                >
-                  {t('financial.ibanChange')}
-                </button>
-              )}
-            </div>
-          </div>
+          <IbanSelector
+            ibanData={ibanData}
+            selectedIban={selectedIban}
+            onSelect={setSelectedIban}
+            readOnly={isReadOnly}
+          />
           <p className="mt-1.5 text-xs text-gray-400">{t('financial.ibanNote')}</p>
         </div>
       )}
 
-      {/* ── Policy Details ── */}
+      {/* ── Policy Details (old shape) ── */}
       {policy && (
         <div className="border-b border-gray-100 px-4 py-3">
           <div className="mb-2.5 flex items-center justify-between">

@@ -3,7 +3,8 @@
     "title": "Medgulf Smart Assistant"
   },
   "common": {
-    "okGotIt": "OK, Got it"
+    "okGotIt": "OK, Got it",
+    "cancel": "Cancel"
   },
   "chat": {
     "header": {
@@ -157,6 +158,9 @@
       "title": "Documents detected by OCR",
       "confidence": "Confidence"
     },
+    "showMore": "Show more details",
+    "showLess": "Show less",
+    "edit": "Edit",
     "error": {
       "required": "This field is required.",
       "invalidNumber": "Please enter a valid number."
@@ -292,6 +296,7 @@
     "confirm": "Confirm",
     "confirmed": "Confirmed",
     "selected": "Benefit Type",
+    "ack": "Submitting {{article}} {{benefitType}} claim for {{name}}.",
     "forWhom": {
       "label": "Who is this claim for?",
       "subtitle": "Select the person who received the medical service.",
@@ -300,9 +305,9 @@
     },
     "options": {
       "OPTICAL":        "Optical",
-      "OUTPATIENT":     "Out Patient",
+      "OUTPATIENT":     "Outpatient",
       "DENTAL":         "Dental",
-      "INPATIENT":      "In Patient",
+      "INPATIENT":      "Inpatient",
       "AUTISM":         "Autism",
       "ADHD":           "ADHD",
       "PHYSIOTHERAPY":  "Physiotherapy",

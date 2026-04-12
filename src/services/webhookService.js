@@ -6,6 +6,7 @@ const CLAIM_CHAT_PATH = '/webhook/claim-chat'
 const FILE_SERVICE_URL = '/file-service/api/upload'
 const FILE_DOWNLOAD_BASE = 'https://api.dev.iohealth.com/file-service/api/download'
 const TIMEOUT_MS = 30_000
+const NO_TIMEOUT  = 0          // used for OCR — duration is unpredictable
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true'
 
 // ---------------------------------------------------------------------------
@@ -17,6 +18,7 @@ const MOCK_STAGE_MAP = {
   S2_DOC_UPLOAD:       () => import('../mock/n8n/stage0b-document-upload.json'),
   S3_OCR_REVIEW:       () => import('../mock/n8n/stage1-extracted-form.json'),
   S4_IBAN:             () => import('../mock/n8n/stage2-iban-input.json'),
+  S4_SUMMARY:          () => import('../mock/n8n/stage3b-summary-card.json'),
   S5_FINANCIAL_SUMMARY:() => import('../mock/n8n/stage3-financial-summary.json'),
   COMPLETED:           () => import('../mock/n8n/stage4-success.json'),
 }
@@ -49,10 +51,10 @@ function authHeader(token) {
   return { Authorization: `Bearer ${token}` }
 }
 
-async function post(body, token) {
+async function post(body, token, timeoutMs = TIMEOUT_MS) {
   const url = `${BASE_URL}${CLAIM_CHAT_PATH}`
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  const timer = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null
 
   let res
   try {
@@ -66,7 +68,7 @@ async function post(body, token) {
       signal: controller.signal,
     })
   } catch (err) {
-    clearTimeout(timer)
+    if (timer) clearTimeout(timer)
     if (err.name === 'AbortError') {
       const timeout = new Error('Request timed out')
       timeout.code = 'TIMEOUT'
@@ -75,7 +77,7 @@ async function post(body, token) {
     throw err
   }
 
-  clearTimeout(timer)
+  if (timer) clearTimeout(timer)
 
   if (!res.ok) {
     const error = new Error(`HTTP ${res.status}`)
@@ -192,6 +194,7 @@ export async function postDocumentsUploaded(session, documents) {
       payload: { documents },
     },
     session.session_token,
+    NO_TIMEOUT,
   )
 }
 
@@ -199,7 +202,7 @@ export async function postDocumentsUploaded(session, documents) {
 // S3 — OCR review confirmed (or edited)
 // ---------------------------------------------------------------------------
 export async function postOcrConfirmed(session, extractedData, isUserEdited) {
-  if (USE_MOCK) return mockPost('S4_IBAN')
+  if (USE_MOCK) return mockPost('S4_SUMMARY')
   return post(
     {
       ...baseBody(session),
@@ -234,12 +237,13 @@ export async function postIbanSelected(session, iban, ibanAction, bankName) {
 // ---------------------------------------------------------------------------
 // S5 — Final submission confirmed
 // ---------------------------------------------------------------------------
-export async function postSubmitConfirmed(session) {
+export async function postSubmitConfirmed(session, ibanOverride = null) {
   if (USE_MOCK) return mockPost('COMPLETED')
   return post(
     {
       ...baseBody(session),
       action: 'SUBMIT_CONFIRMED',
+      payload: ibanOverride ? { iban: ibanOverride } : null,
     },
     session.session_token,
   )

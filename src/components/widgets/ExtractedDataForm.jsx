@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 const REQUIRED_FIELDS = [
@@ -12,21 +12,24 @@ const REQUIRED_FIELDS = [
 const READ_ONLY_FIELDS = ['policy_number', 'benefit_category', 'currency']
 const NUMERIC_FIELDS   = ['claim_amount', 'VAT', 'deductible']
 
-const FIELD_KEYS = [
+// Fields shown by default — the 3 most user-relevant
+const PRIMARY_FIELDS = ['provider_name', 'service_date', 'claim_amount']
+
+// Everything else hidden behind "Show more"
+const SECONDARY_FIELDS = [
   'claimant_name',
   'policy_number',
-  'provider_name',
   'provider_country',
-  'service_date',
   'diagnosis_code',
   'service_code',
   'currency',
-  'claim_amount',
   'VAT',
   'deductible',
   'claim_notes',
   'benefit_category',
 ]
+
+const FIELD_KEYS = [...PRIMARY_FIELDS, ...SECONDARY_FIELDS]
 
 const FIELD_I18N = {
   claimant_name:    'form.fields.claimantName',
@@ -341,6 +344,8 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   const [isUserEdited, setIsUserEdited]   = useState(false)
   const [errors, setErrors]               = useState({})
   const [confirmedValues, setConfirmedValues] = useState(null)
+  const [showAll, setShowAll]             = useState(false)
+  const [editing, setEditing]             = useState(false)
 
   const originalValues = useMemo(() => {
     const base = Object.fromEntries(FIELD_KEYS.map((k) => [k, extracted[k] ?? '']))
@@ -373,11 +378,12 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setConfirmedValues(values)
+    setEditing(false)
     onSubmit({ ...values, is_user_edited: isUserEdited })
   }, [validate, values, isUserEdited, onSubmit])
 
-  // ── Submitted read-only view ──
-  if (submitted && confirmedValues) {
+  // ── Submitted read-only view (with Edit button) ──
+  if (submitted && confirmedValues && !editing) {
     return (
       <div className="mx-4 my-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
@@ -385,12 +391,24 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
             <p className="text-sm font-semibold text-gray-900">{t('form.title')}</p>
             <p className="text-xs text-gray-500 mt-0.5">{t('form.subtitle')}</p>
           </div>
-          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-            {t('form.confirmed')}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-500 hover:border-brand-300 hover:text-brand-600 transition-colors"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-.707.414l-3.121.78.78-3.121a2 2 0 01.414-.707z" />
+              </svg>
+              {t('form.edit')}
+            </button>
+            <span className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+              {t('form.confirmed')}
+            </span>
+          </div>
         </div>
         <div className="divide-y divide-gray-100">
           {FIELD_KEYS.filter((k) => {
@@ -446,7 +464,7 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
       )}
 
       <div className="divide-y divide-gray-100">
-        {FIELD_KEYS.map((key) => {
+        {(showAll ? FIELD_KEYS : PRIMARY_FIELDS).map((key) => {
           const isReadOnly = READ_ONLY_FIELDS.includes(key)
           const isRequired = REQUIRED_FIELDS.includes(key)
           const label = t(FIELD_I18N[key])
@@ -474,7 +492,6 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
                     <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700">{t('form.editedBadge')}</span>
                   )}
                 </div>
-                {/* Snippet button inline with label */}
                 {snippet && <ViewImageButton src={snippet} label={label} />}
               </div>
 
@@ -529,6 +546,23 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
             </div>
           )
         })}
+      </div>
+
+      {/* Show more / less toggle */}
+      <div className="border-t border-gray-100 px-4 py-2">
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-800 transition-colors"
+        >
+          <svg
+            className={`h-3.5 w-3.5 transition-transform duration-200 ${showAll ? 'rotate-180' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+          {showAll ? t('form.showLess') : t('form.showMore')}
+        </button>
       </div>
 
       {/* OCR-detected documents */}
