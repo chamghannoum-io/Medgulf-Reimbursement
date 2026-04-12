@@ -8,7 +8,7 @@ export default defineConfig({
       // Proxy file-service requests to avoid CORS in dev.
       // The browser hits /file-service/... and Vite forwards to the real API.
       '/file-service': {
-        target: 'https://api.dev.iohealth.com',
+        target: 'https://api.mg-test.iohealth.com',
         changeOrigin: true,
         secure: true,
         configure: (proxy) => {

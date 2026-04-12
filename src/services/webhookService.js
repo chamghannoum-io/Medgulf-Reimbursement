@@ -4,7 +4,7 @@ const CLAIM_CHAT_PATH = '/webhook/claim-chat'
 // In production the same relative path works if the reverse proxy is configured,
 // or swap these for the full URL if the prod server handles CORS natively.
 const FILE_SERVICE_URL = '/file-service/api/upload'
-const FILE_DOWNLOAD_BASE = 'https://api.dev.iohealth.com/file-service/api/download'
+const FILE_DOWNLOAD_BASE = 'https://api.mg-test.iohealth.com/file-service/api/download'
 const TIMEOUT_MS = 30_000
 const NO_TIMEOUT  = 0          // used for OCR — duration is unpredictable
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true'
