@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useClaimContext } from '../../context/ClaimContext'
+import { uploadFile } from '../../services/webhookService'
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
@@ -445,6 +447,7 @@ function ModeToggle({ mode, onChange, t }) {
 
 export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
   const { t } = useTranslation()
+  const { state: claimState } = useClaimContext()
 
   const [mode, setMode] = useState('guided') // 'guided' | 'quick'
 
@@ -455,7 +458,6 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
   // Quick: [{ id, file, objectUrl, labels: string[] }]
   const [quickFiles, setQuickFiles] = useState([])
 
-  const claimNotes = '' // disabled in current sprint
   const [uploading, setUploading] = useState(false)
   const [previewItem, setPreviewItem] = useState(null)
 
@@ -537,39 +539,42 @@ export default function DocumentUploadCard({ payload, onSubmit, submitted }) {
     )
   }
 
-  // ── Submit ──
-  function handleSubmit() {
+  // ── Submit — Step 1: upload each file to file service, Step 2: send URLs to claim-chat ──
+  async function handleSubmit() {
     if (!canSubmit || uploading) return
     setUploading(true)
     try {
-      const files = []
-      const documentTypes = []
-
+      // Collect { file, document_type } pairs from whichever mode is active
+      const pairs = []
       if (mode === 'guided') {
         requiredDocs.forEach((doc) => {
           ;(slotFiles[doc.key] || []).forEach((item) => {
-            files.push(item.file)
-            documentTypes.push(doc.key)
+            pairs.push({ file: item.file, document_type: doc.key })
           })
         })
-        // generic mode (no slots)
         if (!hasSlots) {
           Object.entries(slotFiles).forEach(([key, items]) => {
-            items.forEach((item) => {
-              files.push(item.file)
-              documentTypes.push(key)
-            })
+            items.forEach((item) => pairs.push({ file: item.file, document_type: key }))
           })
         }
       } else {
         quickFiles.forEach((item) => {
-          files.push(item.file)
-          // join multiple labels with comma; n8n can split on its side
-          documentTypes.push(item.labels.length ? item.labels.join(',') : 'other')
+          pairs.push({
+            file: item.file,
+            document_type: item.labels.length ? item.labels[0] : 'OTHER',
+          })
         })
       }
 
-      onSubmit({ files, documentTypes, claimNotes })
+      // Upload all files concurrently to the file service
+      const documents = await Promise.all(
+        pairs.map(async ({ file, document_type }) => {
+          const url = await uploadFile(file, claimState.access_token)
+          return { url, mimetype: file.type, filename: file.name, document_type }
+        })
+      )
+
+      onSubmit({ documents })
     } finally {
       setUploading(false)
     }

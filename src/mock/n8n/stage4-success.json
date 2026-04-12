@@ -1,21 +1,9 @@
 {
-  "type": "success_card",
-  "claim_id": "UCRN1773729436110",
-  "submission_timestamp": "2026-03-17T06:37:16.110Z",
-  "processing_type": "Manual_Review_Required",
-  "manual_review_reasons": [
-    "LOW_OCR_CONFIDENCE",
-    "CLAIMANT_NAME_MISMATCH"
-  ],
-  "manual_review_note": "Low confidence detected on field(s): diagnosis_code. These may need manual verification. The claimant name on the document does not match the name on the policy record.",
-  "currency": "SAR",
-  "claim_amount": 98,
-  "VAT": 0,
-  "deductible": 0,
-  "estimated_payout": 0,
-  "iban": "SA3878000000001010892992",
-  "benefit_type": null,
-  "provider_name": "DR. MOHAMED TAHIA",
-  "service_date": "26/10/2025",
-  "message": "Your claim has been submitted and is under manual review. You will receive updates in your notification centre."
+  "output": "Your claim has been submitted successfully! Claim ID: UCRN1773729436110. You will receive updates in your notification centre.",
+  "updated_stage": "COMPLETED",
+  "updated_claim": {
+    "claim_id": "UCRN1773729436110",
+    "processing_type": "Manual_Review_Required",
+    "submission_timestamp": "2026-04-09T10:00:00.000Z"
+  }
 }

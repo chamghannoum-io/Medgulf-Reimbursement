@@ -1,50 +1,44 @@
 const BASE_URL = import.meta.env.VITE_WEBHOOK_BASE_URL
-const INITIAL_PATH = import.meta.env.VITE_INITIAL_WEBHOOK_PATH
+const CLAIM_CHAT_PATH = '/webhook/claim-chat'
+// In dev, use the Vite proxy path (/file-service/...) to avoid CORS.
+// In production the same relative path works if the reverse proxy is configured,
+// or swap these for the full URL if the prod server handles CORS natively.
+const FILE_SERVICE_URL = '/file-service/api/upload'
+const FILE_DOWNLOAD_BASE = 'https://api.dev.iohealth.com/file-service/api/download'
 const TIMEOUT_MS = 30_000
-const OCR_TIMEOUT_MS = 300_000 // OCR can take up to 5 minutes
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true'
 
 // ---------------------------------------------------------------------------
-// Mock mode — maps resumeUrl patterns → fixture files
+// Mock mode — maps updated_stage → fixture files
 // When VITE_USE_MOCK=true, no real HTTP calls are made.
 // ---------------------------------------------------------------------------
-const MOCK_RESUME_MAP = {
-  'mock-stage0b-benefit':  () => import('../mock/n8n/stage0b-document-upload.json'),
-  'mock-stage1-ocr':       () => import('../mock/n8n/stage1-processing-steps.json'),
-  'mock-stage1-uuid':      () => import('../mock/n8n/stage1-success.json'),
-  'mock-resume-stage2':    () => import('../mock/n8n/stage2-iban-input.json'),
-  'mock-stage2-uuid':      () => import('../mock/n8n/stage2-iban-input.json'),
-  'mock-warning-uuid':     () => import('../mock/n8n/stage2-iban-input.json'),
-  'mock-iban-failed-uuid': () => import('../mock/n8n/stage2-iban-input-failed.json'),
-  'mock-resume-stage3':    () => import('../mock/n8n/stage2-iban-input.json'),
-  'mock-stage3-uuid':      () => import('../mock/n8n/stage3-financial-summary.json'),
-  'mock-resume-stage4':    () => import('../mock/n8n/stage3-financial-summary.json'),
-  'mock-stage4-uuid':      () => import('../mock/n8n/stage4-success.json'),
-  'mock-resume-stage4b':   () => import('../mock/n8n/stage4-success.json'),
-  'mock-resume-stage3b':   () => import('../mock/n8n/stage2-iban-input.json'),
-  'mock-resume-claimant':  () => import('../mock/n8n/stage1-processing-steps.json'),
-  'mock-claimant-uuid':    () => import('../mock/n8n/stage1-processing-steps.json'),
+const MOCK_STAGE_MAP = {
+  S1_BENEFIT_SELECTOR: () => import('../mock/n8n/stage0-benefit-type-selector.json'),
+  S2_DOC_UPLOAD:       () => import('../mock/n8n/stage0b-document-upload.json'),
+  S3_OCR_REVIEW:       () => import('../mock/n8n/stage1-extracted-form.json'),
+  S4_IBAN:             () => import('../mock/n8n/stage2-iban-input.json'),
+  S5_FINANCIAL_SUMMARY:() => import('../mock/n8n/stage3-financial-summary.json'),
+  COMPLETED:           () => import('../mock/n8n/stage4-success.json'),
 }
 
-const MOCK_STAGE0_FIXTURE = () => import('../mock/n8n/stage0-benefit-type-selector.json')
+// The initial message triggers S1
+const MOCK_INITIAL_FIXTURE = MOCK_STAGE_MAP.S1_BENEFIT_SELECTOR
 
 function normalisedResponse(raw) {
-  const data = Array.isArray(raw) ? raw[0] : raw
-  // Accept common casing/naming variants that n8n workflows may use
-  const resumeUrl =
-    data.resumeUrl ??
-    data.resume_url ??
-    data.resumeWebhookUrl ??
-    data.webhookUrl ??
-    null
-return { data, resumeUrl }
+  // n8n returns: { status, session_id, data: { output, updated_stage, updated_claim, access_token, ... } }
+  // (sometimes as an array wrapper)
+  const outer = Array.isArray(raw) ? raw[0] : raw
+  const data = outer?.data ?? outer
+  // access_token lives inside data (the inner payload), not on the outer envelope
+  const access_token = data?.access_token ?? null
+  return { data, access_token }
 }
 
-async function mockPost(resumeUrl) {
+async function mockPost(nextStage) {
   await new Promise((r) => setTimeout(r, 800))
-  const key = Object.keys(MOCK_RESUME_MAP).find((k) => resumeUrl?.includes(k))
-  if (!key) throw new Error(`[mock] No fixture mapped for resumeUrl: ${resumeUrl}`)
-  const mod = await MOCK_RESUME_MAP[key]()
+  const loader = MOCK_STAGE_MAP[nextStage]
+  if (!loader) throw new Error(`[mock] No fixture mapped for stage: ${nextStage}`)
+  const mod = await loader()
   return normalisedResponse(mod.default)
 }
 
@@ -55,7 +49,8 @@ function authHeader(token) {
   return { Authorization: `Bearer ${token}` }
 }
 
-async function post(url, body, token) {
+async function post(body, token) {
+  const url = `${BASE_URL}${CLAIM_CHAT_PATH}`
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
@@ -92,159 +87,160 @@ async function post(url, body, token) {
   return normalisedResponse(raw)
 }
 
-async function postForm(url, formData, token, timeoutMs = TIMEOUT_MS) {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-
-  let res
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      // No Content-Type header — browser sets multipart boundary automatically
-      headers: authHeader(token),
-      body: formData,
-      signal: controller.signal,
-    })
-  } catch (err) {
-    clearTimeout(timer)
-    if (err.name === 'AbortError') {
-      const timeout = new Error('Request timed out')
-      timeout.code = 'TIMEOUT'
-      throw timeout
-    }
-    throw err
+// ---------------------------------------------------------------------------
+// Base envelope builder — every request includes session identity
+// ---------------------------------------------------------------------------
+function baseBody(session) {
+  return {
+    session_id: session.session_id,
+    user_id: session.user_id,
+    language: session.language,
   }
-
-  clearTimeout(timer)
-
-  if (!res.ok) {
-    const error = new Error(`HTTP ${res.status}`)
-    error.status = res.status
-    throw error
-  }
-
-  const raw = await res.json()
-  return normalisedResponse(raw)
 }
 
 // ---------------------------------------------------------------------------
-// User text message — resumes an existing Wait node if resumeUrl is known,
-// otherwise starts a new execution at the initial webhook.
+// Free-text message — goes through intent classifier
 // ---------------------------------------------------------------------------
-export async function postUserMessage(session, message, resumeUrl) {
+export async function postUserMessage(session, message) {
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 800))
-    const mod = await MOCK_STAGE0_FIXTURE()
+    const mod = await MOCK_INITIAL_FIXTURE()
     return normalisedResponse(mod.default)
   }
 
-  if (resumeUrl) {
-    try {
-      return await post(resumeUrl, { message }, session.session_token)
-    } catch (err) {
-      // 409 = execution already finished — fall through to start a fresh one
-      if (err.status !== 409) throw err
-    }
-  }
-
-  // No active execution (or stale resumeUrl) — start a new one
-  const url = `${BASE_URL}${INITIAL_PATH}`
-  const body = {
-    session_id: session.session_id,
-    user_id: session.user_id,
-    policy_number: session.policy_number,
-    language: session.language,
-    message,
-  }
-  return post(url, body, session.session_token)
+  return post(
+    { ...baseBody(session), message },
+    session.session_token,
+  )
 }
 
 // ---------------------------------------------------------------------------
-// Stage 0b — Benefit Type Selection (resumes execution → returns document_upload)
+// Generic action — for quick-action buttons and other structured UI triggers
+// that should bypass the intent classifier
 // ---------------------------------------------------------------------------
-export async function postBenefitType(resumeUrl, data, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  const { benefit_type, for_dependent_id, for_dependent_name } = typeof data === 'string' ? { benefit_type: data } : data
-  return post(resumeUrl, { benefit_type, for_dependent_id, for_dependent_name }, token)
+export async function postAction(session, action, payload) {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 800))
+    const mod = await MOCK_INITIAL_FIXTURE()
+    return normalisedResponse(mod.default)
+  }
+  return post(
+    { ...baseBody(session), action, payload: payload ?? null },
+    session.session_token,
+  )
 }
 
 // ---------------------------------------------------------------------------
-// Stage 1 — Binary Document Upload (multipart/form-data → OCR → extracted_form)
+// S1 — Benefit + dependent selection
 // ---------------------------------------------------------------------------
-export async function postDocumentUpload(resumeUrl, files, documentTypes, benefitType, claimNotes, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
+export async function postBenefitSelected(session, benefitType, dependentId, dependentName) {
+  if (USE_MOCK) return mockPost('S2_DOC_UPLOAD')
+  return post(
+    {
+      ...baseBody(session),
+      action: 'BENEFIT_SELECTED',
+      payload: {
+        benefit_type: benefitType,
+        for_dependent_id: dependentId,
+        for_dependent_name: dependentName,
+      },
+    },
+    session.session_token,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// File service — upload a single File object, returns the download URL string
+// ---------------------------------------------------------------------------
+export async function uploadFile(file, token) {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 400))
+    const mockFilename = `mock_${Date.now()}_${file.name}`
+    return `${FILE_DOWNLOAD_BASE}/${mockFilename}`
+  }
 
   const formData = new FormData()
-  formData.append('benefit_type', benefitType || '')
-  formData.append('claim_notes', claimNotes || '')
+  formData.append('file', file)
 
-  files.forEach((file, index) => {
-    formData.append('document', file, file.name)
-    formData.append(`document_type_${index}`, documentTypes[index] || 'unknown')
-    formData.append(`document_filename_${index}`, file.name)
-    formData.append(`document_mimetype_${index}`, file.type || 'application/octet-stream')
-    formData.append(`document_size_${index}`, String(file.size))
+  const res = await fetch(FILE_SERVICE_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
   })
 
-  return postForm(resumeUrl, formData, token, OCR_TIMEOUT_MS)
-}
-
-// ---------------------------------------------------------------------------
-// Stage 2 — Form Confirmation
-// ---------------------------------------------------------------------------
-export async function postFormConfirmation(resumeUrl, formData, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  return post(resumeUrl, formData, token)
-}
-
-// ---------------------------------------------------------------------------
-// Claimant Selection (between Stage 1 and OCR if ambiguous)
-// ---------------------------------------------------------------------------
-export async function postClaimantSelection(resumeUrl, selectedClaimantId, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  return post(resumeUrl, { selected_claimant_id: selectedClaimantId }, token)
-}
-
-// ---------------------------------------------------------------------------
-// Processing Steps completion (advance n8n after client animation)
-// ---------------------------------------------------------------------------
-export async function postProcessingComplete(resumeUrl, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  return post(resumeUrl, {}, token)
-}
-
-// ---------------------------------------------------------------------------
-// Warning Banner — acknowledge flags and proceed or discard (resumes Stage 2)
-// ---------------------------------------------------------------------------
-export async function postWarningAction(resumeUrl, proceedAction, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  return post(resumeUrl, { proceed_action: proceedAction }, token)
-}
-
-// ---------------------------------------------------------------------------
-// Stage 3 — IBAN Confirmation
-// ---------------------------------------------------------------------------
-export async function postIbanConfirmation(resumeUrl, ibanData, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  return post(resumeUrl, ibanData, token)
-}
-
-// ---------------------------------------------------------------------------
-// Stage 4 — Final Submission
-// ---------------------------------------------------------------------------
-export async function postFinalSubmission(resumeUrl, submitAction, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  const body = {
-    submit_action: submitAction,
-    submission_timestamp: new Date().toISOString(),
+  if (!res.ok) {
+    const err = new Error(`File upload failed: HTTP ${res.status}`)
+    err.status = res.status
+    throw err
   }
-  return post(resumeUrl, body, token)
+
+  // Response is a plain filename string, e.g. "medical-report_1775729218041.jpg"
+  const filename = await res.text()
+  return `${FILE_DOWNLOAD_BASE}/${filename.trim()}`
 }
 
 // ---------------------------------------------------------------------------
-// Draft Save (any stage)
+// S2 — Documents uploaded (URLs from file service, not binary)
+// documents: [{ url, mimetype, filename, document_type }]
 // ---------------------------------------------------------------------------
-export async function postSaveDraft(resumeUrl, draftState, token) {
-  if (USE_MOCK) return mockPost(resumeUrl)
-  return post(resumeUrl, { action: 'save_draft', draft_state: draftState }, token)
+export async function postDocumentsUploaded(session, documents) {
+  if (USE_MOCK) return mockPost('S3_OCR_REVIEW')
+  return post(
+    {
+      ...baseBody(session),
+      action: 'DOCUMENTS_UPLOADED',
+      payload: { documents },
+    },
+    session.session_token,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// S3 — OCR review confirmed (or edited)
+// ---------------------------------------------------------------------------
+export async function postOcrConfirmed(session, extractedData, isUserEdited) {
+  if (USE_MOCK) return mockPost('S4_IBAN')
+  return post(
+    {
+      ...baseBody(session),
+      action: 'OCR_CONFIRMED',
+      payload: {
+        extracted_data: extractedData,
+        is_user_edited: isUserEdited,
+      },
+    },
+    session.session_token,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// S4 — IBAN selected (saved or new)
+// ibanAction: 'saved' | 'new'
+// ---------------------------------------------------------------------------
+export async function postIbanSelected(session, iban, ibanAction, bankName) {
+  if (USE_MOCK) return mockPost('S5_FINANCIAL_SUMMARY')
+  const payload = { iban, iban_action: ibanAction }
+  if (ibanAction === 'new' && bankName) payload.bank_name = bankName
+  return post(
+    {
+      ...baseBody(session),
+      action: 'IBAN_SELECTED',
+      payload,
+    },
+    session.session_token,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// S5 — Final submission confirmed
+// ---------------------------------------------------------------------------
+export async function postSubmitConfirmed(session) {
+  if (USE_MOCK) return mockPost('COMPLETED')
+  return post(
+    {
+      ...baseBody(session),
+      action: 'SUBMIT_CONFIRMED',
+    },
+    session.session_token,
+  )
 }

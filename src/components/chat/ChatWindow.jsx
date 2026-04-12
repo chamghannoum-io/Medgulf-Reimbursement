@@ -68,23 +68,13 @@ export default function ChatWindow() {
       case 'document_upload':
         flow.submitDocumentUpload(data, message.id)
         break
-      case 'claimant_selector':
-        flow.submitClaimantSelection(data.selected_claimant_id, message.id)
-        break
-      case 'processing_steps':
-        flow.submitProcessingComplete(message.id)
-        break
       case 'extracted_form':
         flow.submitForm(data, message.id)
         break
       case 'iban_input':
         flow.submitIban(data, message.id)
         break
-      case 'warning_banner':
-        flow.submitWarning(data, message.id)
-        break
       case 'financial_summary':
-      case 'confirmation_dialog':
         flow.submitFinal(data, message.id)
         break
       case 'success_card':
@@ -96,11 +86,8 @@ export default function ChatWindow() {
   }, [
     flow.submitBenefitType,
     flow.submitDocumentUpload,
-    flow.submitClaimantSelection,
-    flow.submitProcessingComplete,
     flow.submitForm,
     flow.submitIban,
-    flow.submitWarning,
     flow.submitFinal,
     handleNewChat,
   ])
@@ -216,6 +203,10 @@ export default function ChatWindow() {
           onSelect={(message) => {
             setQuickActionsVisible(false)
             flow.sendUserMessage(message)
+          }}
+          onAction={(action, payload, displayText) => {
+            setQuickActionsVisible(false)
+            flow.sendAction(action, payload, displayText)
           }}
         />
       )}

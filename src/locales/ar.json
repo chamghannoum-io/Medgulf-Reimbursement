@@ -299,14 +299,14 @@
       "forLabel": "بالنيابة عن"
     },
     "options": {
-      "Optical":       "بصريات",
-      "Outpatient":    "عيادة خارجية",
-      "Dental":        "أسنان",
-      "Inpatient":     "تنويم",
-      "Autism":        "توحد",
-      "ADHD":          "اضطراب نقص الانتباه",
-      "Physiotherapy": "علاج طبيعي",
-      "Psychotherapy": "علاج نفسي"
+      "OPTICAL":        "بصريات",
+      "OUTPATIENT":     "عيادة خارجية",
+      "DENTAL":         "أسنان",
+      "INPATIENT":      "تنويم",
+      "AUTISM":         "توحد",
+      "ADHD":           "اضطراب نقص الانتباه",
+      "PHYSIOTHERAPY":  "علاج طبيعي",
+      "PSYCHOTHERAPY":  "علاج نفسي"
     }
   },
   "notifications": {

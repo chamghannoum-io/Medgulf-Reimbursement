@@ -299,14 +299,14 @@
       "forLabel": "For"
     },
     "options": {
-      "Optical":       "Optical",
-      "Outpatient":    "Out Patient",
-      "Dental":        "Dental",
-      "Inpatient":     "In Patient",
-      "Autism":        "Autism",
-      "ADHD":          "ADHD",
-      "Physiotherapy": "Physiotherapy",
-      "Psychotherapy": "Psychotherapy"
+      "OPTICAL":        "Optical",
+      "OUTPATIENT":     "Out Patient",
+      "DENTAL":         "Dental",
+      "INPATIENT":      "In Patient",
+      "AUTISM":         "Autism",
+      "ADHD":           "ADHD",
+      "PHYSIOTHERAPY":  "Physiotherapy",
+      "PSYCHOTHERAPY":  "Psychotherapy"
     }
   },
   "notifications": {

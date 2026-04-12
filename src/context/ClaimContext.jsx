@@ -1,34 +1,39 @@
-import React, { createContext, useContext, useReducer } from 'react'
+import { createContext, useContext, useReducer } from 'react'
 
 // ---------------------------------------------------------------------------
 // State shape
 // ---------------------------------------------------------------------------
 const INITIAL_STATE = {
   claimFlowState: 'IDLE',
-  resumeUrl: null,
   isLoading: false,
   lastFailedRequest: null,
+  access_token: null,
 
   messages: [],
 
+  // Accumulates updated_claim fields merged from every n8n response
   claimData: {
-    claimant_name: null,
-    policy_number: null,
-    provider_name: null,
-    provider_country: null,
-    service_date: null,
-    claim_notes: null,
-    benefit_category: null,
-    diagnosis_code: null,
-    service_code: null,
-    claim_amount: null,
-    VAT: null,
-    deductible: null,
-    IBAN: null,
-    is_user_edited: false,
+    // S1
+    dependents: null,
+    benefit_types: null,
+    // S2
+    benefit_type: null,
+    for_dependent_id: null,
+    for_dependent_name: null,
+    required_docs: null,
+    // S3
+    extracted_data: null,
+    ocr_confidence: null,
     is_doc_unclear: false,
-    geo_check_status: null,
-    is_service_uncovered: false,
+    // S4
+    saved_ibans: null,
+    iban: null,
+    // S5
+    financial_summary: null,
+    // S6
+    claim_id: null,
+    processing_type: null,
+    submission_timestamp: null,
   },
 
   submittedClaimId: null,
@@ -37,26 +42,20 @@ const INITIAL_STATE = {
 
 // ---------------------------------------------------------------------------
 // Valid state transitions
+// n8n stage names drive the flow; frontend states map 1-to-1 to updated_stage values
+// plus IDLE, GREETING, SUBMITTING at the edges.
 // ---------------------------------------------------------------------------
 const VALID_TRANSITIONS = {
-  IDLE: ['GREETING'],
-  GREETING: ['BENEFIT_TYPE_PENDING', 'UPLOAD_PENDING'],
-  BENEFIT_TYPE_PENDING: ['BENEFIT_TYPE_SELECTED', 'DRAFT_SAVED'],
-  BENEFIT_TYPE_SELECTED: ['UPLOAD_PENDING', 'DRAFT_SAVED'],
-  UPLOAD_PENDING: ['ANALYZING_DOCS', 'CLAIMANT_PENDING', 'DRAFT_SAVED'],
-  CLAIMANT_PENDING: ['CLAIMANT_VERIFIED', 'DRAFT_SAVED'],
-  CLAIMANT_VERIFIED: ['ANALYZING_DOCS', 'DRAFT_SAVED'],
-  ANALYZING_DOCS: ['DATA_EXTRACTED', 'DRAFT_SAVED'],
-  DATA_EXTRACTED: ['AWAITING_CONFIRMATION', 'DRAFT_SAVED'],
-  AWAITING_CONFIRMATION: ['POLICY_CHECKING', 'IBAN_PENDING', 'DRAFT_SAVED'],
-  POLICY_CHECKING: ['POLICY_CHECKED', 'DRAFT_SAVED'],
-  POLICY_CHECKED: ['IBAN_PENDING', 'DRAFT_SAVED'],
-  IBAN_PENDING: ['IBAN_VERIFIED', 'IBAN_PENDING', 'AWAITING_SUBMISSION', 'DRAFT_SAVED'],
-  IBAN_VERIFIED: ['AWAITING_SUBMISSION', 'DRAFT_SAVED'],
-  AWAITING_SUBMISSION: ['SUBMITTING', 'DRAFT_SAVED'],
-  SUBMITTING: ['SUBMITTED'],
-  SUBMITTED: [],
-  DRAFT_SAVED: ['BENEFIT_TYPE_PENDING', 'UPLOAD_PENDING', 'CLAIMANT_PENDING', 'CLAIMANT_VERIFIED', 'ANALYZING_DOCS'],
+  IDLE:                ['GREETING'],
+  GREETING:            ['S1_BENEFIT_SELECTOR'],
+  S1_BENEFIT_SELECTOR: ['S2_DOC_UPLOAD', 'DRAFT_SAVED'],
+  S2_DOC_UPLOAD:       ['S3_OCR_REVIEW', 'DRAFT_SAVED'],
+  S3_OCR_REVIEW:       ['S3_OCR_REVIEW', 'S4_IBAN', 'DRAFT_SAVED'],
+  S4_IBAN:             ['S4_IBAN', 'S5_FINANCIAL_SUMMARY', 'DRAFT_SAVED'],
+  S5_FINANCIAL_SUMMARY:['SUBMITTING', 'DRAFT_SAVED'],
+  SUBMITTING:          ['COMPLETED'],
+  COMPLETED:           [],
+  DRAFT_SAVED:         ['S1_BENEFIT_SELECTOR', 'S2_DOC_UPLOAD', 'S3_OCR_REVIEW'],
 }
 
 let msgIdCounter = 0
@@ -82,9 +81,6 @@ function claimReducer(state, action) {
       return { ...state, claimFlowState: next }
     }
 
-    case 'SET_RESUME_URL':
-      return { ...state, resumeUrl: action.payload }
-
     case 'ADD_MESSAGE': {
       const msg = {
         id: nextId(),
@@ -95,7 +91,6 @@ function claimReducer(state, action) {
     }
 
     case 'MARK_WIDGET_SUBMITTED': {
-      // Make the widget at messageId read-only
       return {
         ...state,
         messages: state.messages.map((m) =>
@@ -104,7 +99,7 @@ function claimReducer(state, action) {
       }
     }
 
-    case 'UPDATE_CLAIM_DATA':
+    case 'MERGE_CLAIM_DATA':
       return {
         ...state,
         claimData: { ...state.claimData, ...action.payload },
@@ -113,13 +108,16 @@ function claimReducer(state, action) {
     case 'SET_SUBMITTED':
       return {
         ...state,
-        claimFlowState: 'SUBMITTED',
+        claimFlowState: 'COMPLETED',
         submittedClaimId: action.payload.claim_id,
         processingType: action.payload.processing_type,
       }
 
     case 'SAVE_LAST_REQUEST':
       return { ...state, lastFailedRequest: action.payload }
+
+    case 'SET_ACCESS_TOKEN':
+      return { ...state, access_token: action.payload }
 
     case 'CLEAR_LAST_REQUEST':
       return { ...state, lastFailedRequest: null }

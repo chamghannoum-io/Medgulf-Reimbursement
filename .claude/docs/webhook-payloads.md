@@ -1,203 +1,233 @@
 # Webhook Payloads — Quick Reference
 
-All calls go through `src/services/webhookService.js`. See CLAUDE.md for the function signatures.
+All calls go through `src/services/webhookService.js`. Single endpoint for everything.
+
+**Endpoint:** `POST ${VITE_WEBHOOK_BASE_URL}/webhook/claim-chat`
 
 ---
 
-## Stage 1 — Initial Document Upload
+## Request envelope
 
-**Endpoint:** `POST ${VITE_WEBHOOK_BASE_URL}${VITE_INITIAL_WEBHOOK_PATH}`
-
-**Request:**
+### Free-text message (intent classifier path)
 ```json
 {
+  "session_id": "string",
   "user_id": "string",
-  "policy_number": "string",
-  "session_token": "string",
-  "language": "ar | en",
-  "claim_notes": "string (may be empty)",
-  "documents": ["base64string", "base64string"],
-  "document_types": ["invoice", "prescription"]
-}
-```
-
-**Response:**
-```json
-{
-  "type": "processing_steps | extracted_form | assistant_text",
-  "message": "string",
-  "extracted_data": {
-    "claimant_name": "string | null",
-    "provider_name": "string | null",
-    "provider_country": "string | null",
-    "service_date": "YYYY-MM-DD | null",
-    "diagnosis_code": "string | null",
-    "service_code": "string | null",
-    "claim_amount": "number | null",
-    "VAT": "number | null",
-    "deductible": "number | null",
-    "claim_notes": "string | null",
-    "benefit_category": "string | null",
-    "policy_number": "string"
-  },
-  "ocr_confidence": 0.0,
-  "is_doc_unclear": false,
-  "resumeUrl": "https://n8n.domain.com/webhook-waiting/uuid"
-}
-```
-
----
-
-## Stage 2 — Form Confirmation
-
-**Endpoint:** `POST {resumeUrl}` (from Stage 1 response)
-
-**Request:**
-```json
-{
-  "claimant_name": "string",
-  "provider_name": "string",
-  "provider_country": "string",
-  "service_date": "YYYY-MM-DD",
-  "diagnosis_code": "string",
-  "service_code": "string",
-  "claim_amount": 0.00,
-  "VAT": 0.00,
-  "deductible": 0.00,
-  "claim_notes": "string",
-  "is_user_edited": false
-}
-```
-
-**Response:**
-```json
-{
-  "type": "iban_input | warning_banner | assistant_text",
-  "message": "string",
-  "geo_check_status": true,
-  "is_service_uncovered": false,
-  "benefit_category": "string",
-  "saved_ibans": [
-    { "id": "string", "masked": "SA** **** **** **** ***7", "is_default": true }
-  ],
-  "resumeUrl": "string"
-}
-```
-
----
-
-## Stage 3 — IBAN Confirmation
-
-**Endpoint:** `POST {resumeUrl}` (from Stage 2 response)
-
-**Request:**
-```json
-{
-  "iban": "SA000000000000000000000",
-  "iban_action": "use_existing | new_iban"
-}
-```
-
-**Response (success):**
-```json
-{
-  "type": "financial_summary",
-  "iban_verified": true,
-  "estimated_payout": 0.00,
-  "processing_type": "Standard | Manual_Review_Required",
-  "currency": "SAR",
-  "claim_amount": 0.00,
-  "VAT": 0.00,
-  "deductible": 0.00,
-  "resumeUrl": "string"
-}
-```
-
-**Response (IBAN failed):**
-```json
-{
-  "type": "iban_input",
-  "iban_verified": false,
-  "message": "string",
-  "saved_ibans": [],
-  "resumeUrl": "string"
-}
-```
-
----
-
-## Stage 4 — Final Submission
-
-**Endpoint:** `POST {resumeUrl}` (from Stage 3 response)
-
-**Request:**
-```json
-{
-  "submit_action": "submit | submit_with_flag | discard",
-  "user_correction_note": "string (optional)",
-  "submission_timestamp": "2025-01-01T00:00:00.000Z"
-}
-```
-
-**Response:**
-```json
-{
-  "type": "success_card | assistant_text",
-  "claim_id": "UCRN1234567",
-  "submission_timestamp": "2025-01-01T00:00:00.000Z",
-  "processing_type": "Standard | Manual_Review_Required",
+  "language": "en | ar",
   "message": "string"
 }
 ```
 
----
-
-## Draft Save (any stage)
-
-**Endpoint:** `POST {resumeUrl}`
-
-**Request:**
+### Structured UI action (bypasses intent classifier)
 ```json
 {
-  "action": "save_draft",
-  "draft_state": { }
+  "session_id": "string",
+  "user_id": "string",
+  "language": "en | ar",
+  "action": "string",
+  "payload": {}
 }
 ```
 
+> Use `message` for freetext only. Use `action` + `payload` for all widget submissions.
+
 ---
 
-## Claimant Selector (returned by n8n during Stage 1 flow)
-
-n8n may return this type before OCR if claimant is ambiguous:
-
+## Response envelope (always the same shape)
 ```json
 {
-  "type": "claimant_selector",
-  "message": "string",
+  "output": "string",
+  "updated_stage": "string",
+  "updated_claim": {}
+}
+```
+
+- `output` — assistant text to render as a chat bubble
+- `updated_stage` — new flow state; drives which widget to render next
+- `updated_claim` — partial claim object; merged into `claimData` in `ClaimContext`
+
+---
+
+## S1_BENEFIT_SELECTOR
+
+**Trigger:** any initial freetext (e.g. "Submit a claim")
+
+**updated_claim shape:**
+```json
+{
   "dependents": [
-    { "id": "string", "name": "string", "relation": "self | spouse | child" }
+    { "id": "string", "name": "string", "relation": "self | spouse | child", "relation_label": "string", "date_of_birth": "string", "gender": "string" }
   ],
-  "resumeUrl": "string"
+  "benefit_types": [
+    { "value": "DENTAL", "label": "Dental" }
+  ]
 }
 ```
 
-**Frontend posts back:**
+**Frontend posts back — action `BENEFIT_SELECTED`:**
 ```json
 {
-  "selected_claimant_id": "string"
+  "action": "BENEFIT_SELECTED",
+  "payload": {
+    "benefit_type": "DENTAL",
+    "for_dependent_id": "dep-123",
+    "for_dependent_name": "Sarah Smith"
+  }
 }
 ```
 
 ---
 
-## Error Response (any stage)
+## S2_DOC_UPLOAD
 
-n8n may return this at any point:
+**updated_claim shape:**
 ```json
 {
-  "type": "assistant_text",
-  "message": "Localised error description",
-  "is_error": true
+  "benefit_type": "DENTAL",
+  "for_dependent_id": "dep-123",
+  "for_dependent_name": "Sarah Smith",
+  "required_docs": [
+    { "key": "INVOICE", "label": "Invoice", "description": "string", "required": true }
+  ]
 }
 ```
-Render as a standard assistant bubble. Show Retry button if `is_error: true`.
+
+**Frontend posts back — action `DOCUMENTS_UPLOADED`:**
+
+Files are uploaded to the file service first; only URL references are sent here.
+```json
+{
+  "action": "DOCUMENTS_UPLOADED",
+  "payload": {
+    "documents": [
+      { "url": "string", "mimetype": "image/jpeg", "filename": "invoice.jpg", "document_type": "INVOICE" }
+    ]
+  }
+}
+```
+
+---
+
+## S3_OCR_REVIEW
+
+**updated_claim shape:**
+```json
+{
+  "extracted_data": {
+    "claimant_name": "string",
+    "provider_name": "string",
+    "provider_country": "string (ISO 3166-1 alpha-3)",
+    "service_date": "DD/MM/YYYY",
+    "diagnosis_code": ["string"],
+    "service_code": "string",
+    "claim_amount": 0.00,
+    "VAT": 0.00,
+    "deductible": 0.00,
+    "claim_notes": "string | null",
+    "benefit_category": "string",
+    "image_snippets": {}
+  },
+  "ocr_confidence": 0.95,
+  "is_doc_unclear": false
+}
+```
+
+**Frontend posts back — action `OCR_CONFIRMED`:**
+```json
+{
+  "action": "OCR_CONFIRMED",
+  "payload": {
+    "extracted_data": { "...same fields, edited or not..." },
+    "is_user_edited": true
+  }
+}
+```
+
+**User freetext correction (no action):**
+```json
+{ "message": "The amount should be 450 not 1500" }
+```
+Response stays at `updated_stage: "S3_OCR_REVIEW"`.
+
+---
+
+## S4_IBAN
+
+**updated_claim shape:**
+```json
+{
+  "saved_ibans": [
+    { "iban": "SA1234...", "bankName": "Riyad Bank" }
+  ]
+}
+```
+
+**Frontend posts back — action `IBAN_SELECTED`:**
+
+Saved IBAN:
+```json
+{
+  "action": "IBAN_SELECTED",
+  "payload": { "iban": "SA1234...", "iban_action": "saved" }
+}
+```
+
+New IBAN:
+```json
+{
+  "action": "IBAN_SELECTED",
+  "payload": { "iban": "SA9876...", "bank_name": "Al Rajhi", "iban_action": "new" }
+}
+```
+
+---
+
+## S5_FINANCIAL_SUMMARY
+
+**updated_claim shape:**
+```json
+{
+  "financial_summary": {
+    "claim_amount": 1500,
+    "vat": 0,
+    "deductible": 0,
+    "co_insurance_share": 0,
+    "total_deductions": 0,
+    "estimated_payout": 1500,
+    "remaining_coverage": 5000
+  },
+  "iban": "SA1234...",
+  "processing_type": "Standard | Manual_Review_Required"
+}
+```
+
+**Frontend posts back — action `SUBMIT_CONFIRMED`:**
+```json
+{ "action": "SUBMIT_CONFIRMED" }
+```
+
+---
+
+## COMPLETED
+
+**updated_claim shape:**
+```json
+{
+  "claim_id": "UCRN1234567890",
+  "processing_type": "Standard | Manual_Review_Required",
+  "submission_timestamp": "2026-04-09T10:00:00.000Z"
+}
+```
+
+---
+
+## Freetext at any stage
+
+Send `message` only — no `action`. Response will have the same `updated_stage` and `output` answering the question. No widget is re-rendered.
+
+---
+
+## Error response (any stage)
+
+n8n returns a standard envelope; `output` contains the localised error. No special type field.
+Show a Retry button if `useWebhook` catches a non-2xx.

@@ -3,17 +3,14 @@ import { useClaimContext } from '../context/ClaimContext'
 import { useSession } from '../context/SessionContext'
 import * as webhookService from '../services/webhookService'
 
-// Maps n8n response type → next claimFlowState
-const TYPE_TO_STATE = {
-  benefit_type_selector: 'BENEFIT_TYPE_PENDING',
-  document_upload:       'UPLOAD_PENDING',
-  claimant_selector:     'CLAIMANT_PENDING',
-  processing_steps:      'ANALYZING_DOCS',
-  extracted_form:        'DATA_EXTRACTED',
-  iban_input:            'IBAN_PENDING',
-  financial_summary:     'AWAITING_SUBMISSION',
-  warning_banner:        'POLICY_CHECKED',
-  success_card:          'SUBMITTED',
+// Maps updated_stage values from n8n → widget message type for rendering
+const STAGE_TO_WIDGET_TYPE = {
+  S1_BENEFIT_SELECTOR:  'benefit_type_selector',
+  S2_DOC_UPLOAD:        'document_upload',
+  S3_OCR_REVIEW:        'extracted_form',
+  S4_IBAN:              'iban_input',
+  S5_FINANCIAL_SUMMARY: 'financial_summary',
+  COMPLETED:            'success_card',
 }
 
 export function useClaimFlow() {
@@ -35,32 +32,55 @@ export function useClaimFlow() {
     addMessage('assistant_text', { message: null, isError: true })
   }
 
+  /**
+   * Processes the new n8n envelope: { output, updated_stage, updated_claim }
+   * - Always renders an assistant_text bubble for `output`
+   * - Merges updated_claim into claimData
+   * - Advances flow state to updated_stage
+   * - Renders the appropriate widget for the new stage (if any)
+   */
   function handleResponse(response) {
-    // Normalise raw n8n agent output ({ output: "..." }) into the standard shape
-    let data = response.data
-    if (!data.type && data.output) {
-      data = { type: 'assistant_text', message: data.output, resumeUrl: data.resumeUrl }
+    const { data, access_token } = response
+
+    if (!data) return
+
+    const { output, updated_stage, updated_claim } = data
+
+    // 1. Store access_token if provided
+    if (access_token) {
+      dispatch({ type: 'SET_ACCESS_TOKEN', payload: access_token })
     }
 
-    // Always sync resumeUrl — clears it when n8n ends an execution without one
-    dispatch({ type: 'SET_RESUME_URL', payload: response.resumeUrl || null })
-
-    addMessage(data.type, data)
-
-    const nextState = TYPE_TO_STATE[data.type]
-    if (nextState) {
-      dispatch({ type: 'SET_FLOW_STATE', payload: nextState })
+    // 2. Merge claim data
+    if (updated_claim && Object.keys(updated_claim).length > 0) {
+      dispatch({ type: 'MERGE_CLAIM_DATA', payload: updated_claim })
     }
 
-    if (data.extracted_data) {
-      dispatch({ type: 'UPDATE_CLAIM_DATA', payload: data.extracted_data })
+    // 3. Advance flow state
+    if (updated_stage) {
+      dispatch({ type: 'SET_FLOW_STATE', payload: updated_stage })
     }
 
-    if (data.type === 'success_card') {
-      dispatch({
-        type: 'SET_SUBMITTED',
-        payload: { claim_id: data.claim_id, processing_type: data.processing_type },
-      })
+    // 4. Assistant text bubble
+    if (output) {
+      addMessage('assistant_text', { message: output })
+    }
+
+    // 5. Widget bubble for interactive stages
+    const widgetType = STAGE_TO_WIDGET_TYPE[updated_stage]
+    if (widgetType) {
+      if (updated_stage === 'COMPLETED') {
+        dispatch({
+          type: 'SET_SUBMITTED',
+          payload: {
+            claim_id: updated_claim?.claim_id,
+            processing_type: updated_claim?.processing_type,
+          },
+        })
+        addMessage('success_card', { ...updated_claim, message: output })
+      } else {
+        addMessage(widgetType, updated_claim ?? {})
+      }
     }
   }
 
@@ -82,8 +102,7 @@ export function useClaimFlow() {
   // Public API
   // ------------------------------------------------------------------
 
-  /** Called when user sends a free-text message — resumes Wait node if mid-flow,
-   *  otherwise starts a new execution at the initial webhook. */
+  /** Free-text message — starts flow on IDLE, sent to intent classifier otherwise */
   const sendUserMessage = useCallback(
     (text) => {
       addMessage('user_text', { message: text })
@@ -91,122 +110,87 @@ export function useClaimFlow() {
         dispatch({ type: 'SET_FLOW_STATE', payload: 'GREETING' })
       }
       return withLoading(
-        () => webhookService.postUserMessage(session, text, state.resumeUrl),
+        () => webhookService.postUserMessage(session, text),
         { type: 'userMessage', text }
       )
     },
-    [session, state.claimFlowState, state.resumeUrl, dispatch]
+    [session, state.claimFlowState, dispatch]
   )
 
-  /** Called when BenefitTypeSelectorWidget submits */
+  /** Structured action — bypasses intent classifier (used by quick-action buttons) */
+  const sendAction = useCallback(
+    (action, payload, displayText) => {
+      addMessage('user_text', { message: displayText })
+      if (state.claimFlowState === 'IDLE') {
+        dispatch({ type: 'SET_FLOW_STATE', payload: 'GREETING' })
+      }
+      return withLoading(
+        () => webhookService.postAction(session, action, payload),
+        { type: 'action', action, payload, displayText }
+      )
+    },
+    [session, state.claimFlowState, dispatch]
+  )
+
+  /** S1 — BenefitTypeSelectorWidget submits */
   const submitBenefitType = useCallback(
-    (data, messageId) => {
-      const benefitType = data.benefit_type ?? data
+    ({ benefit_type, for_dependent_id, for_dependent_name }, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
-      dispatch({ type: 'SET_FLOW_STATE', payload: 'BENEFIT_TYPE_SELECTED' })
-      dispatch({ type: 'UPDATE_CLAIM_DATA', payload: { benefit_category: benefitType } })
       return withLoading(
-        () => webhookService.postBenefitType(state.resumeUrl, data, session.session_token),
-        { type: 'benefitType', benefitData: data }
+        () => webhookService.postBenefitSelected(session, benefit_type, for_dependent_id, for_dependent_name),
+        { type: 'benefitSelected', benefit_type, for_dependent_id, for_dependent_name }
       )
     },
-    [session, state.resumeUrl, dispatch]
+    [session, dispatch]
   )
 
-  /** Called when DocumentUploadCard submits — sends binary FormData */
+  /** S2 — DocumentUploadCard submits — documents are URL refs from file service */
   const submitDocumentUpload = useCallback(
-    ({ files, documentTypes, claimNotes }, messageId) => {
-      dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
-      dispatch({ type: 'SET_FLOW_STATE', payload: 'ANALYZING_DOCS' })
-      const benefitType = state.claimData.benefit_category
-      return withLoading(
-        () => webhookService.postDocumentUpload(
-          state.resumeUrl,
-          files,
-          documentTypes,
-          benefitType,
-          claimNotes,
-          session.session_token
-        ),
-        { type: 'documentUpload', files, documentTypes, claimNotes }
-      )
-    },
-    [session, state.resumeUrl, state.claimData.benefit_category, dispatch]
-  )
-
-  /** Called when ClaimantSelectorWidget submits */
-  const submitClaimantSelection = useCallback(
-    (selectedClaimantId, messageId) => {
-      dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
-      dispatch({ type: 'SET_FLOW_STATE', payload: 'CLAIMANT_VERIFIED' })
-      return withLoading(
-        () => webhookService.postClaimantSelection(state.resumeUrl, selectedClaimantId, session.session_token),
-        { type: 'claimantSelection', selectedClaimantId }
-      )
-    },
-    [session, state.resumeUrl, dispatch]
-  )
-
-  /** Called by ProcessingSteps after animation completes */
-  const submitProcessingComplete = useCallback(
-    (messageId) => {
+    ({ documents }, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
       return withLoading(
-        () => webhookService.postProcessingComplete(state.resumeUrl, session.session_token),
-        { type: 'processingComplete' }
+        () => webhookService.postDocumentsUploaded(session, documents),
+        { type: 'documentsUploaded', documents }
       )
     },
-    [session, state.resumeUrl, dispatch]
+    [session, state.access_token, dispatch]
   )
 
-  /** Called when ExtractedDataForm submits */
+  /** S3 — ExtractedDataForm confirms or edits OCR data */
   const submitForm = useCallback(
-    (formData, messageId) => {
-      dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
-      dispatch({ type: 'SET_FLOW_STATE', payload: 'AWAITING_CONFIRMATION' })
-      return withLoading(
-        () => webhookService.postFormConfirmation(state.resumeUrl, formData, session.session_token),
-        { type: 'formConfirmation', formData }
-      )
-    },
-    [session, state.resumeUrl, dispatch]
-  )
-
-  /** Called when WarningBanner submits — acknowledges flags, resumes Stage 2 Wait node */
-  const submitWarning = useCallback(
-    (proceedAction, messageId) => {
+    ({ extracted_data, is_user_edited }, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
       return withLoading(
-        () => webhookService.postWarningAction(state.resumeUrl, proceedAction, session.session_token),
-        { type: 'warningAction', proceedAction }
+        () => webhookService.postOcrConfirmed(session, extracted_data, is_user_edited),
+        { type: 'ocrConfirmed', extracted_data, is_user_edited }
       )
     },
-    [session, state.resumeUrl, dispatch]
+    [session, dispatch]
   )
 
-  /** Called when IbanInputWidget submits */
+  /** S4 — IbanInputWidget submits */
   const submitIban = useCallback(
-    (ibanData, messageId) => {
+    ({ iban, iban_action, bank_name }, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
       return withLoading(
-        () => webhookService.postIbanConfirmation(state.resumeUrl, ibanData, session.session_token),
-        { type: 'ibanConfirmation', ibanData }
+        () => webhookService.postIbanSelected(session, iban, iban_action, bank_name),
+        { type: 'ibanSelected', iban, iban_action, bank_name }
       )
     },
-    [session, state.resumeUrl, dispatch]
+    [session, dispatch]
   )
 
-  /** Called when FinancialSummaryCard or WarningBanner submits */
+  /** S5 — FinancialSummaryCard confirms submission */
   const submitFinal = useCallback(
-    (submitAction, messageId) => {
+    (_, messageId) => {
       dispatch({ type: 'MARK_WIDGET_SUBMITTED', payload: messageId })
       dispatch({ type: 'SET_FLOW_STATE', payload: 'SUBMITTING' })
       return withLoading(
-        () => webhookService.postFinalSubmission(state.resumeUrl, submitAction, session.session_token),
-        { type: 'finalSubmission', submitAction }
+        () => webhookService.postSubmitConfirmed(session),
+        { type: 'submitConfirmed' }
       )
     },
-    [session, state.resumeUrl, dispatch]
+    [session, dispatch]
   )
 
   /** Reset the entire claim flow back to initial state */
@@ -220,29 +204,28 @@ export function useClaimFlow() {
     if (!req) return
     switch (req.type) {
       case 'userMessage':      return sendUserMessage(req.text)
-      case 'benefitType':      return submitBenefitType(req.benefitData)
-      case 'documentUpload':   return submitDocumentUpload({ files: req.files, documentTypes: req.documentTypes, claimNotes: req.claimNotes })
-      case 'claimantSelection': return submitClaimantSelection(req.selectedClaimantId)
-      case 'formConfirmation': return submitForm(req.formData)
-      case 'ibanConfirmation': return submitIban(req.ibanData)
-      case 'warningAction':    return submitWarning(req.proceedAction)
-      case 'finalSubmission':  return submitFinal(req.submitAction)
+      case 'action':           return sendAction(req.action, req.payload, req.displayText)
+      case 'benefitSelected':  return submitBenefitType({ benefit_type: req.benefit_type, for_dependent_id: req.for_dependent_id, for_dependent_name: req.for_dependent_name })
+      case 'documentsUploaded':return submitDocumentUpload({ documents: req.documents })
+      case 'ocrConfirmed':     return submitForm({ extracted_data: req.extracted_data, is_user_edited: req.is_user_edited })
+      case 'ibanSelected':     return submitIban({ iban: req.iban, iban_action: req.iban_action, bank_name: req.bank_name })
+      case 'submitConfirmed':  return submitFinal(null)
       default: break
     }
-  }, [state.lastFailedRequest, sendUserMessage, submitBenefitType, submitDocumentUpload, submitClaimantSelection, submitForm, submitIban, submitWarning, submitFinal])
+  }, [state.lastFailedRequest, sendUserMessage, sendAction, submitBenefitType, submitDocumentUpload, submitForm, submitIban, submitFinal])
 
   return {
     messages: state.messages,
     claimFlowState: state.claimFlowState,
+    claimData: state.claimData,
+    access_token: state.access_token,
     isLoading: state.isLoading,
-    isSubmitted: state.claimFlowState === 'SUBMITTED',
+    isSubmitted: state.claimFlowState === 'COMPLETED',
     sendUserMessage,
+    sendAction,
     submitBenefitType,
     submitDocumentUpload,
-    submitClaimantSelection,
-    submitProcessingComplete,
     submitForm,
-    submitWarning,
     submitIban,
     submitFinal,
     retryLast,

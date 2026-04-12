@@ -1,21 +1,10 @@
 {
-  "type": "iban_input",
-  "message": "Please select a saved bank account or enter a new IBAN for reimbursement.",
-  "geo_check_status": true,
-  "is_service_uncovered": false,
-  "benefit_type": null,
-  "benefit_category": null,
-  "policy_number": "MG-2024-001234",
-  "has_saved_ibans": true,
-  "saved_ibans": [
-    {
-      "iban": "SA3878000000001010892992",
-      "bankName": "STC Bank"
-    },
-    {
-      "iban": "SA5655000000083809900133",
-      "bankName": "Banque Saudi Fransi"
-    }
-  ],
-  "resumeUrl": "http://localhost:5678/webhook-waiting/mock-stage3-uuid"
+  "output": "You have these saved bank accounts. Please select one or enter a new IBAN for reimbursement.",
+  "updated_stage": "S4_IBAN",
+  "updated_claim": {
+    "saved_ibans": [
+      { "iban": "SA3878000000001010892992", "bankName": "STC Bank"             },
+      { "iban": "SA5655000000083809900133", "bankName": "Banque Saudi Fransi"  }
+    ]
+  }
 }
