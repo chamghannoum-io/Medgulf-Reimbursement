@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/file-service/:path*",
+      "destination": "https://api.mg-test.iohealth.com/file-service/:path*"
+    }
+  ]
+}
