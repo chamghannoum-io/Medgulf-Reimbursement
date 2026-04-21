@@ -1,5 +1,5 @@
-const BASE_URL = import.meta.env.DEV ? '' : import.meta.env.VITE_WEBHOOK_BASE_URL
-const CLAIM_CHAT_PATH = import.meta.env.VITE_INITIAL_WEBHOOK_PATH
+const BASE_URL = import.meta.env.VITE_WEBHOOK_BASE_URL
+const CLAIM_CHAT_PATH = '/webhook/claim-chat'
 // In dev, use the Vite proxy path (/file-service/...) to avoid CORS.
 // In production the same relative path works if the reverse proxy is configured,
 // or swap these for the full URL if the prod server handles CORS natively.
@@ -33,12 +33,10 @@ function normalisedResponse(raw) {
   const outer = Array.isArray(raw) ? raw[0] : raw
   let data = outer?.data ?? outer
 
-  // New universal shape: { status, data: { type, output: { text } } }
-  // output.text is either a plain string or stringified JSON.
-  // Hoist type → response_type so handleResponse can use it for widget routing,
-  // and flatten output.text → output so the rest of the pipeline is unchanged.
-  if (data?.output?.text !== undefined) {
-    data = { ...data, response_type: data.type, output: data.output.text }
+  // Plain-text response shape: { status, data: { type: 'text', output: { text: '...' } } }
+  // Normalise to the standard shape so handleResponse can treat it as assistant_text.
+  if (data?.type === 'text' && data?.output?.text) {
+    data = { output: data.output.text }
   }
 
   // access_token lives inside data (the inner payload), not on the outer envelope
@@ -171,16 +169,27 @@ export async function uploadFile(file, token) {
     return `${FILE_DOWNLOAD_BASE}/${mockFilename}`
   }
 
+  const resolvedToken = token || FILE_SERVICE_TOKEN
+  console.log('[uploadFile] FILE_SERVICE_URL:', FILE_SERVICE_URL)
+  console.log('[uploadFile] token arg present:', !!token)
+  console.log('[uploadFile] FILE_SERVICE_TOKEN present:', !!FILE_SERVICE_TOKEN)
+  console.log('[uploadFile] resolved token present:', !!resolvedToken)
+  console.log('[uploadFile] Authorization header:', `Bearer ${resolvedToken ? resolvedToken.slice(0, 6) + '…' : 'MISSING'}`)
+
   const formData = new FormData()
   formData.append('file', file)
 
   const res = await fetch(FILE_SERVICE_URL, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token || FILE_SERVICE_TOKEN}` },
+    headers: { Authorization: `Bearer ${resolvedToken}` },
     body: formData,
   })
 
+  console.log('[uploadFile] response status:', res.status)
+
   if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    console.log('[uploadFile] error response body:', body)
     const err = new Error(`File upload failed: HTTP ${res.status}`)
     err.status = res.status
     throw err
