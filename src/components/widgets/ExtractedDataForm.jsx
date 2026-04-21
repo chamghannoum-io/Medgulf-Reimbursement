@@ -12,12 +12,11 @@ const REQUIRED_FIELDS = [
 const READ_ONLY_FIELDS = ['policy_number', 'benefit_category', 'currency']
 const NUMERIC_FIELDS   = ['claim_amount', 'VAT', 'deductible']
 
-// Fields shown by default — the 3 most user-relevant
-const PRIMARY_FIELDS = ['provider_name', 'service_date', 'claim_amount']
+// Fields shown by default — claimant first, then the 3 most user-relevant
+const PRIMARY_FIELDS = ['claimant_name', 'provider_name', 'service_date', 'claim_amount']
 
 // Everything else hidden behind "Show more"
 const SECONDARY_FIELDS = [
-  'claimant_name',
   'policy_number',
   'provider_country',
   'diagnosis_code',
@@ -334,6 +333,8 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   const snippets = extracted.image_snippets ?? {}
   const detectedDocs = payload?.detected_documents ?? []
   const uploadWarning = payload?.upload_warning ?? null
+  const dependents = payload?.dependents ?? []
+  const claimantNameFlag = !!(payload?.claimant_name_flag)
 
   const [values, setValues] = useState(() => {
     const base = Object.fromEntries(FIELD_KEYS.map((k) => [k, extracted[k] ?? '']))
@@ -346,6 +347,8 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   const [confirmedValues, setConfirmedValues] = useState(null)
   const [showAll, setShowAll]             = useState(false)
   const [editing, setEditing]             = useState(false)
+  // Track whether user changed the claimant name when it was flagged
+  const [showClaimantWarning, setShowClaimantWarning] = useState(false)
 
   const originalValues = useMemo(() => {
     const base = Object.fromEntries(FIELD_KEYS.map((k) => [k, extracted[k] ?? '']))
@@ -377,10 +380,16 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
   const handleSubmit = useCallback(() => {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    // If claimant name is still mismatched, show warning and require acknowledgement
+    if (claimantNameFlag && values.claimant_name === (extracted.claimant_name ?? '')) {
+      setShowClaimantWarning(true)
+      return
+    }
+    setShowClaimantWarning(false)
     setConfirmedValues(values)
     setEditing(false)
     onSubmit({ ...values, is_user_edited: isUserEdited })
-  }, [validate, values, isUserEdited, onSubmit])
+  }, [validate, values, isUserEdited, claimantNameFlag, extracted.claimant_name, onSubmit])
 
   // ── Submitted read-only view (with Edit button) ──
   if (submitted && confirmedValues && !editing) {
@@ -476,12 +485,24 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
             ? JSON.stringify(val) !== JSON.stringify(originalVal)
             : val !== originalVal
 
+          // Claimant name is flagged if payload says so AND user hasn't changed it yet
+          const isClaimantField = key === 'claimant_name'
+          const isFlagged = isClaimantField && claimantNameFlag && !isDirty
+
           return (
             <div key={key} className="flex flex-col gap-1 px-4 py-3">
               {/* Label row */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="text-xs font-medium text-gray-700 leading-snug">{label}</p>
+                  {isFlagged && (
+                    <span className="flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      {t('form.claimantMismatch')}
+                    </span>
+                  )}
                   {isReadOnly && (
                     <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{t('form.readOnly')}</span>
                   )}
@@ -497,7 +518,21 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
 
               {/* Input */}
               <div className="min-w-0">
-                {key === 'diagnosis_code' ? (
+                {isClaimantField && dependents.length > 0 ? (
+                  <select
+                    value={val}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    className={fieldClass(false, !!errors[key])}
+                  >
+                    {/* Keep the OCR-extracted value as an option even if not in dependents */}
+                    {val && !dependents.find((d) => d.name === val) && (
+                      <option value={val}>{val}</option>
+                    )}
+                    {dependents.map((dep) => (
+                      <option key={dep.id} value={dep.name}>{dep.name}</option>
+                    ))}
+                  </select>
+                ) : key === 'diagnosis_code' ? (
                   <DiagnosisCodeField
                     codes={val}
                     onChange={(arr) => handleChange('diagnosis_code', arr)}
@@ -542,6 +577,10 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
                   />
                 )}
                 {errors[key] && <p className="mt-0.5 text-xs text-red-600">{errors[key]}</p>}
+                {/* Inline hint below flagged claimant field */}
+                {isFlagged && (
+                  <p className="mt-1 text-xs text-amber-600">{t('form.claimantMismatchHint')}</p>
+                )}
               </div>
             </div>
           )
@@ -568,14 +607,51 @@ export default function ExtractedDataForm({ payload, onSubmit, submitted }) {
       {/* OCR-detected documents */}
       <DetectedDocumentsSection docs={detectedDocs} />
 
-      <div className="px-4 pb-4 pt-1">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-        >
-          {t('form.confirm')}
-        </button>
+      {/* Claimant mismatch warning — shown when user tries to submit without fixing */}
+      {showClaimantWarning && claimantNameFlag && values.claimant_name === (extracted.claimant_name ?? '') && (
+        <div className="mx-4 mb-3 flex gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
+          <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-amber-800">{t('form.claimantMismatchWarningTitle')}</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-amber-700">{t('form.claimantMismatchWarningBody')}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-2 px-4 pb-4 pt-1">
+        {showClaimantWarning && claimantNameFlag && values.claimant_name === (extracted.claimant_name ?? '') ? (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setShowClaimantWarning(false)
+                setConfirmedValues(values)
+                setEditing(false)
+                onSubmit({ ...values, is_user_edited: isUserEdited })
+              }}
+              className="w-full rounded-xl border border-amber-300 bg-amber-50 py-2.5 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+            >
+              {t('warning.submitAnyway')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowClaimantWarning(false)}
+              className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+            >
+              {t('form.claimantMismatchFix')}
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            {t('form.confirm')}
+          </button>
+        )}
       </div>
     </div>
   )

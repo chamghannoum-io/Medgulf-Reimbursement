@@ -161,6 +161,11 @@
     "showMore": "Show more details",
     "showLess": "Show less",
     "edit": "Edit",
+    "claimantMismatch": "Name mismatch",
+    "claimantMismatchHint": "This name doesn't match your policy. Please select the correct person from the list.",
+    "claimantMismatchWarningTitle": "Claimant name not confirmed",
+    "claimantMismatchWarningBody": "The extracted name doesn't match anyone on your policy. Submitting without correcting this will route your claim to manual review.",
+    "claimantMismatchFix": "Select correct name",
     "error": {
       "required": "This field is required.",
       "invalidNumber": "Please enter a valid number."
@@ -230,6 +235,7 @@
     "coInsuranceNil": "NIL",
     "totalDeductions": "Total Deductions",
     "estimatedPayout": "Estimated Payout",
+    "fullyCoveredNote": "No deductible or co-insurance — visit is fully covered",
     "currency": "SAR",
     "ibanLabel": "Payment Account",
     "ibanVerified": "Verified",
@@ -286,7 +292,10 @@
       "ok": "OK, I understand",
       "reasons": {
         "LOW_OCR_CONFIDENCE": "Low confidence detected on one or more extracted fields",
-        "CLAIMANT_NAME_MISMATCH": "Claimant name does not match the policy record"
+        "CLAIMANT_NAME_MISMATCH": "Claimant name does not match the policy record",
+        "USER_EDITED_DATA": "Extracted data was manually edited before submission",
+        "UNCLEAR_DOCUMENT": "One or more uploaded documents failed the clarity check",
+        "EXCEEDS_PREAPPROVAL_THRESHOLD": "Claimed amount exceeds the pre-approval limit"
       }
     }
   },
@@ -296,7 +305,7 @@
     "confirm": "Confirm",
     "confirmed": "Confirmed",
     "selected": "Benefit Type",
-    "ack": "Submitting {{article}} {{benefitType}} claim for {{name}}.",
+    "ack": "Submitting {{article}} {{benefitType}} claim.",
     "forWhom": {
       "label": "Who is this claim for?",
       "subtitle": "Select the person who received the medical service.",

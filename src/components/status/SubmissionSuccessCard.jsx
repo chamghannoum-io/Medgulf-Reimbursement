@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 const REASON_KEYS = {
-  LOW_OCR_CONFIDENCE: 'success.manualReview.reasons.LOW_OCR_CONFIDENCE',
-  CLAIMANT_NAME_MISMATCH: 'success.manualReview.reasons.CLAIMANT_NAME_MISMATCH',
+  LOW_OCR_CONFIDENCE:            'success.manualReview.reasons.LOW_OCR_CONFIDENCE',
+  USER_EDITED_DATA:              'success.manualReview.reasons.USER_EDITED_DATA',
+  UNCLEAR_DOCUMENT:              'success.manualReview.reasons.UNCLEAR_DOCUMENT',
+  EXCEEDS_PREAPPROVAL_THRESHOLD: 'success.manualReview.reasons.EXCEEDS_PREAPPROVAL_THRESHOLD',
 }
 
 const SubmissionSuccessCard = React.memo(function SubmissionSuccessCard({ payload, onSubmit }) {

@@ -1,5 +1,5 @@
-const BASE_URL = import.meta.env.VITE_WEBHOOK_BASE_URL
-const CLAIM_CHAT_PATH = '/webhook/claim-chat'
+const BASE_URL = import.meta.env.DEV ? '' : import.meta.env.VITE_WEBHOOK_BASE_URL
+const CLAIM_CHAT_PATH = import.meta.env.VITE_INITIAL_WEBHOOK_PATH
 // In dev, use the Vite proxy path (/file-service/...) to avoid CORS.
 // In production the same relative path works if the reverse proxy is configured,
 // or swap these for the full URL if the prod server handles CORS natively.
@@ -30,7 +30,14 @@ function normalisedResponse(raw) {
   // n8n returns: { status, session_id, data: { output, updated_stage, updated_claim, access_token, ... } }
   // (sometimes as an array wrapper)
   const outer = Array.isArray(raw) ? raw[0] : raw
-  const data = outer?.data ?? outer
+  let data = outer?.data ?? outer
+
+  // Plain-text response shape: { status, data: { type: 'text', output: { text: '...' } } }
+  // Normalise to the standard shape so handleResponse can treat it as assistant_text.
+  if (data?.type === 'text' && data?.output?.text) {
+    data = { output: data.output.text }
+  }
+
   // access_token lives inside data (the inner payload), not on the outer envelope
   const access_token = data?.access_token ?? null
   return { data, access_token }

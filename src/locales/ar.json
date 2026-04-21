@@ -161,6 +161,11 @@
     "showMore": "عرض مزيد من التفاصيل",
     "showLess": "عرض أقل",
     "edit": "تعديل",
+    "claimantMismatch": "عدم تطابق الاسم",
+    "claimantMismatchHint": "هذا الاسم لا يطابق وثيقتك. يرجى اختيار الشخص الصحيح من القائمة.",
+    "claimantMismatchWarningTitle": "لم يتم تأكيد اسم المطالب",
+    "claimantMismatchWarningBody": "الاسم المستخرج لا يطابق أي شخص في وثيقتك. التقديم دون تصحيح هذا سيحيل مطالبتك إلى المراجعة اليدوية.",
+    "claimantMismatchFix": "اختر الاسم الصحيح",
     "error": {
       "required": "هذا الحقل مطلوب.",
       "invalidNumber": "يرجى إدخال رقم صحيح."
@@ -230,6 +235,7 @@
     "coInsuranceNil": "لا يوجد",
     "totalDeductions": "إجمالي الاستقطاعات",
     "estimatedPayout": "المبلغ المقدر للصرف",
+    "fullyCoveredNote": "لا يوجد مبلغ مقتطع أو تأمين مشترك — الزيارة مغطاة بالكامل",
     "currency": "ر.س",
     "ibanLabel": "حساب الدفع",
     "ibanVerified": "موثّق",
@@ -286,7 +292,10 @@
       "ok": "حسنًا، فهمت",
       "reasons": {
         "LOW_OCR_CONFIDENCE": "دقة منخفضة في التعرف الضوئي على الحروف لحقل أو أكثر",
-        "CLAIMANT_NAME_MISMATCH": "اسم مقدم المطالبة لا يطابق سجل الوثيقة"
+        "CLAIMANT_NAME_MISMATCH": "اسم مقدم المطالبة لا يطابق سجل الوثيقة",
+        "USER_EDITED_DATA": "تم تعديل البيانات المستخرجة يدويًا قبل التقديم",
+        "UNCLEAR_DOCUMENT": "فشل مستند أو أكثر في فحص الجودة",
+        "EXCEEDS_PREAPPROVAL_THRESHOLD": "المبلغ المطالب به يتجاوز حد الموافقة المسبقة"
       }
     }
   },
@@ -296,7 +305,7 @@
     "confirm": "تأكيد",
     "confirmed": "تم التأكيد",
     "selected": "نوع المزايا",
-    "ack": "حسنًا! سيتم تقديم مطالبة {{benefitType}} باسم {{name}}.",
+    "ack": "حسنًا! سيتم تقديم مطالبة {{benefitType}}.",
     "forWhom": {
       "label": "لمن هذه المطالبة؟",
       "subtitle": "حدد الشخص الذي تلقى الخدمة الطبية.",

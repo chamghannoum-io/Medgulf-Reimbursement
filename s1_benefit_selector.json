@@ -1,0 +1,46 @@
+[
+  {
+    "output": "Hello Akram Kheir! To start your claim, please select the benefit type.",
+    "updated_stage": "S1_BENEFIT_SELECTOR",
+    "updated_claim": {
+      "user_id": "776",
+      "user_name": "Akram Kheir",
+      "benefit_types": [
+        {
+          "value": "OPTICAL",
+          "label": "Optical"
+        },
+        {
+          "value": "OUTPATIENT",
+          "label": "Out Patient"
+        },
+        {
+          "value": "DENTAL",
+          "label": "Dental"
+        },
+        {
+          "value": "INPATIENT",
+          "label": "In Patient"
+        },
+        {
+          "value": "AUTISM",
+          "label": "Autism"
+        },
+        {
+          "value": "ADHD",
+          "label": "ADHD"
+        },
+        {
+          "value": "PHYSIOTHERAPY",
+          "label": "Physiotherapy"
+        },
+        {
+          "value": "PSYCHOTHERAPY",
+          "label": "Psychotherapy"
+        }
+      ]
+    },
+    "dirty_flags": {},
+    "access_token": ""
+  }
+]

@@ -409,10 +409,10 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
               </p>
             </div>
           )}
-          {deductible != null && (
+          {deductible != null && deductible > 0 && (
             <DataRow label={t('financial.deductible')} value={formatCurrency(deductible, currency)} muted />
           )}
-          {coInsVal != null && (
+          {coInsVal != null && co_insurance_share !== 0 && (
             <DataRow label={t('financial.coInsurance')} value={coInsVal} muted />
           )}
           {vat != null && (
@@ -422,11 +422,17 @@ export default function FinancialSummaryCard({ payload, onSubmit, submitted }) {
               muted
             />
           )}
-          {total_deductions != null && (
+          {total_deductions != null && total_deductions > 0 && (
             <DataRow label={t('financial.totalDeductions')} value={formatCurrency(total_deductions, currency)} muted />
           )}
           {estimated_payout != null && (
-            <div className="border-t border-gray-100 pt-2.5">
+            <div className="border-t border-gray-100 pt-2">
+              {deductible === 0 && co_insurance_share === 0 && (
+                <div className="mb-2 flex items-center gap-1.5 rounded-lg bg-green-50 px-2.5 py-1.5">
+                  <CheckIcon className="h-3.5 w-3.5 text-green-600" />
+                  <span className="text-xs font-medium text-green-700">{t('financial.fullyCoveredNote')}</span>
+                </div>
+              )}
               <PayoutRow label={t('financial.estimatedPayout')} value={formatCurrency(estimated_payout, currency)} />
             </div>
           )}

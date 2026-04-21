@@ -1,0 +1,81 @@
+[
+  {
+    "output": "Please upload your documents to continue.",
+    "updated_stage": "S2_DOC_UPLOAD",
+    "updated_claim": {
+      "user_id": "776",
+      "user_name": "Akram Kheir",
+      "benefit_types": [
+        {
+          "label": "Optical",
+          "value": "OPTICAL"
+        },
+        {
+          "label": "Out Patient",
+          "value": "OUTPATIENT"
+        },
+        {
+          "label": "Dental",
+          "value": "DENTAL"
+        },
+        {
+          "label": "In Patient",
+          "value": "INPATIENT"
+        },
+        {
+          "label": "Autism",
+          "value": "AUTISM"
+        },
+        {
+          "label": "ADHD",
+          "value": "ADHD"
+        },
+        {
+          "label": "Physiotherapy",
+          "value": "PHYSIOTHERAPY"
+        },
+        {
+          "label": "Psychotherapy",
+          "value": "PSYCHOTHERAPY"
+        }
+      ],
+      "benefit_type": "OUTPATIENT",
+      "for_dependent_id": "SELF",
+      "for_dependent_name": null,
+      "required_docs": [
+        {
+          "key": "RECEIPT",
+          "label": "Receipt",
+          "required": true
+        },
+        {
+          "key": "INVOICE",
+          "label": "Invoice",
+          "required": true
+        },
+        {
+          "key": "LAB_RESULT",
+          "label": "Lab Result",
+          "required": false
+        },
+        {
+          "key": "PRESCRIPTION",
+          "label": "Prescription",
+          "required": true
+        },
+        {
+          "key": "RAD_REPORT",
+          "label": "Rad Report",
+          "required": false
+        },
+        {
+          "key": "MEDICAL_REPORT",
+          "label": "Medical Report",
+          "required": true
+        }
+      ]
+    },
+    "dirty_flags": {},
+    "access_token": ""
+  }
+]

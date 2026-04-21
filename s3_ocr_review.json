@@ -1,0 +1,146 @@
+[
+  {
+    "output": "\n\n⚠️ The claimant name on the document doesn't match anyone on your policy. Please select who this claim is for.\n\nReview the details below. Does everything look correct? You can correct any field by just telling me.",
+    "updated_stage": "S3_OCR_REVIEW",
+    "updated_claim": {
+      "user_id": "776",
+      "user_name": "Akram Kheir",
+      "benefit_type": "OUTPATIENT",
+      "benefit_types": [
+        {
+          "label": "Optical",
+          "value": "OPTICAL"
+        },
+        {
+          "label": "Out Patient",
+          "value": "OUTPATIENT"
+        },
+        {
+          "label": "Dental",
+          "value": "DENTAL"
+        },
+        {
+          "label": "In Patient",
+          "value": "INPATIENT"
+        },
+        {
+          "label": "Autism",
+          "value": "AUTISM"
+        },
+        {
+          "label": "ADHD",
+          "value": "ADHD"
+        },
+        {
+          "label": "Physiotherapy",
+          "value": "PHYSIOTHERAPY"
+        },
+        {
+          "label": "Psychotherapy",
+          "value": "PSYCHOTHERAPY"
+        }
+      ],
+      "required_docs": [
+        {
+          "key": "RECEIPT",
+          "label": "Receipt",
+          "required": true
+        },
+        {
+          "key": "INVOICE",
+          "label": "Invoice",
+          "required": true
+        },
+        {
+          "key": "LAB_RESULT",
+          "label": "Lab Result",
+          "required": false
+        },
+        {
+          "key": "PRESCRIPTION",
+          "label": "Prescription",
+          "required": true
+        },
+        {
+          "key": "RAD_REPORT",
+          "label": "Rad Report",
+          "required": false
+        },
+        {
+          "key": "MEDICAL_REPORT",
+          "label": "Medical Report",
+          "required": true
+        }
+      ],
+      "for_dependent_id": null,
+      "for_dependent_name": null,
+      "documents": [
+        {
+          "url": "https://api.mg-test.iohealth.com/file-service/api/download/receipt_1776662907752.jpg",
+          "mimetype": "image/jpeg",
+          "filename": "receipt.jpg",
+          "document_type": "RECEIPT"
+        },
+        {
+          "url": "https://api.mg-test.iohealth.com/file-service/api/download/receipt_1776662906866.jpg",
+          "mimetype": "image/jpeg",
+          "filename": "receipt.jpg",
+          "document_type": "INVOICE"
+        },
+        {
+          "url": "https://api.mg-test.iohealth.com/file-service/api/download/medical-report_1776662905744.jpg",
+          "mimetype": "image/jpeg",
+          "filename": "medical-report.jpg",
+          "document_type": "PRESCRIPTION"
+        },
+        {
+          "url": "https://api.mg-test.iohealth.com/file-service/api/download/medical-report_1776662905827.jpg",
+          "mimetype": "image/jpeg",
+          "filename": "medical-report.jpg",
+          "document_type": "MEDICAL_REPORT"
+        }
+      ],
+      "extracted_data": {
+        "claimant_name": "Mr Javed Shaikh",
+        "policy_number": "OP/26169853",
+        "provider_name": "Artemis Hospital (A unit of Artemis Medicare Services Ltd.)",
+        "provider_country": "IND",
+        "service_date": "20/11/2025",
+        "diagnosis_code": [
+          "COPD"
+        ],
+        "service_code": "255279",
+        "currency": "INR",
+        "claim_amount": 1500,
+        "VAT": 0,
+        "deductible": 0,
+        "claim_notes": null,
+        "benefit_category": "OUTPATIENT",
+        "image_snippets": {
+          "claimant_name": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAARAGUBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AOltpL7SW1izeCYtO5kgmRcg5BwPw/rTItGm1u2tINUgkjm+z7ln7xydv5UkWi6zbQWdxNtnuLeZg2G++pAwf0plj4XvbGLzI1VjdQsky5+7k1JH4PubZ/sMTxmyd0lJJ5BGe341pN4fkn1XUmlZTZ3UKxAL14znP51BbeEUlkD6pIJmjjEUbIccf5xRaeEEsNJudOhkHl3ExkJkG4genX9atS+Hh9gjsbefy7IKVaIrndRP4StLqYNvKxnaGjA4OM4+nU1pR6NFFrZ1ISMJPJEO3sAOhq8ybSO3tTgAAOaoxanZz3s9lDOrXEAG+M9UB6H9KLDWLHUHuY7eYMbZtkueit6UanfR6Zpst6wLRxLuOynW9/BPFDMsir5w3KrHBIp7XcGzcJUw2SCD1qu+rWaxSMJ0+Q7Thuc9qoaXrp1Hw3NqywkvGWHlIM5xWZD4qvLjRbrUY3t5EiTOwH50PdSP61pW/irT5bPzHDmRCqSKq9znH8jVe58Rw3FqJrK5KPJbu8aFOuMe/GM1lzeLry48EfbrMkzoibpQMqxJ5ArqdG1hdW86J4zHNAQHB75HX9K02G3ArzbS/wDkq2t/9e/+NVfDn/IO1/8A6/f8a7DW/wDkRbr/AK9zXNn/AJCmkf7sf8moh/5An/bWX+YrH03/AJC03/XaL/2au5+H/wDyLM//AF3l/pXB2n/H74j/AOuR/ma00/4/rr/th/J6raX/AKmx/wCvSf8A9lqroH/JLJ/+ug/nXd+Gf+Q7qv0j/k1dNL94fSv/2Q==",
+          "policy_number": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAPAFEBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AOotvA11pUWoLpV+wa6KYa4ctgAV0OiWd5p9gLe7eOUjhTGMACmw6GsPiK51hZgXmhEZixjGB1zTJtFimtYofPdVEpkLY+8T/wDrrOk8D6UIfIjDwoLr7SQD1Y9f50lv4H0tLqS5dpnZi/yljxuOSPzq5D4S0q2uLa4jWUTWyhFKyEBwBgbsda3S4HX8KQSNkDHFIzc7R0NJ5S+tUv7fsIy2ZmwrbSNhyDVW48S2nyiMszyrujypx0qj4Y8WJrKrbXIP2tWfPHy4U4rpgO4zyKZ90n0oDU9Tkj2pXUEjNB6YFRj5X55zUu4V/9k=",
+          "provider_name": "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",
+          "provider_country": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAQAEQBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/APW44YlYYjUHOelDxoPlwMHtimsgJG5RkHIpuETaTgYGF/wqUhWIO0HjqetRSzRRssckiqXOFDHvSoVlQMjKyk5DAU3aD2A9hS4rkm8XzReJ4tMJjkEhMZCryje5/H9Kdp/iLUJpbaW58lbe4Z1XHUbcfzz+lM0HxTJfa7PZSSLLGY/MSQLjArV8SS4sLV0cjN1GMqfrWbFrV+LpbqSaI2z3n2bywOnvWcb+5udb0i7lvIjG88kYhwPl4HWjU/Ec1ppll9nnaKV1d9iAYOCOuR05rr7C9FxZW5kkTz5Iw7LnkZ/pV0civ//Z",
+          "service_date": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAPAE4BAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/APV8E9KQ8nFHagdKevNU/wCytMlkMpt4t2clh6/SrCLbBpZIvL3lsOVx2FI0UEkiF449wz5eQPl9cU4Lb7vswCAn5jEAOR64pC0Fqu4iOLJx0xXMP4tuWAKWA2m3a5U7xwoyP/ZasJ4mee4jit7YsoKCUs2Mbj1H0roDwAPak70/AKkEkA9x2ri9T057FtSvNPmkQQ2TLJvfIZ8HnFSQ3g0bU9xZmt/sCPIvU+YS2SPyrS1GT7Tqeg3IJVXeTKk9flFTbAPGsUgJ+az+7njq1OOoW2oxs99bmOGOQpGc7t3vgV//2Q==",
+          "diagnosis_code": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAARAE4BAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/APTi/BpmSaQnFHTgUoGBmjcfQ0bjR1NKwwpA6n9KRPlIJ9KTJ9KcuTnikINNOO1OGMdaQ/jTEDDOc07pyKeMn2zTSCDS9qX0oPQ0w9KOwp1IaWl9Kd2Ff//Z",
+          "service_code": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAQAE4BAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/APTYgWuZQRwvQZ61T1fVdL8P20U+oOsaTTLDGeTuZjgfh71alntol8ySSJUYbgWOOOtRXN/ptrCj3F3bRxuMqzyAA/TJ5qOS/wBOjgSVrq3WKQHY7MAG+h71QbXreLWbm1nNtHZwWi3BuWmXgEtzjPA461Dd+MfD9vo97qUV7BdRWa5kWBgxJP3eh70tx4z0GzSAXV4sTSwC4CEfMEPcj068+1KnizRJTdlLxB9mRZJdwwdp6EfWqmp+O9B0yzS5ku2EbSmL5Y8kEAHB9OD+tdWGZZX+nBHrXHeNNBuPF8V5poRUgtoN0TyRP80uDjBB55rl7y8v7q18D/27YTx3qXEsMkEhIMxUKAcDtjtVNdHvNCHg6DVYDPcNe3ZS3MmcIQNqn15B/Or8fgDXLfR7Rd0dzILK6t2haXiJpQ4U5743Dp0q7J4G1ZYL9EeKXztFFgrF8Fpcsckeg3Dn2qtB8PtRW31u3JtY0vrCOCIqc/OuecfiOau6t4EvtT1GS5a7tFR9I/s5SV6Phhn2HNMm+HE16NQ8zUYB9psoYIzHGRh0OckdxyKua54Cl1vRLO0e5tYLiCQvK8cTAOdoXPX2r//Z",
+          "currency": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAQADsBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AO1vZnt7KWaKNpJFHyIqliT9BXG6XpN/4f8AHP22OB5rPVYv9J8tWxFKOQT6dR+tUtP8N6iJ7GSa3u223dwZi0hGUKjbx6ZBp8WgayPD2lxSxyeZBa3MDR+YSQ77tje/Uc9sUmpeFdbkgZIsXLPpJs2Z7gKBJ83PP1H5VJqPhPVL65uJ1jiIk0uO3QtKBiVS2T+GRW7ZaHLaeKptSPl+XJZR27HPzB15P5561sszbjwfyq1g/wB/9KTB/vUfOAcHmq8F5BPLcwxPuMEpjcN/CQM4/WobvU7eyu4bVlmknk7QxFwuem7HSov7dshd/Zt7DE32dpCPlD9eT680221m0vJoI4w6+cH8qQjh9vWrjE7jiv/Z",
+          "claim_amount": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAQACUBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AIx4e1KDUUmhtZ9ketLOuZSf3GDn69asW2gaomuQSPI4SK6uJpZQ/EiPtCj9DVbRfDOs2V7pn2mFBHb288MkhuAxcvtwT+RqXw/4Rv8AT47EXkcSiKwlhmxIGLO2Mcd8YrofDWmS6P4cstPn2CS3TYdhyDz1/GtS8uUs7Oa6uH2wwpuZvSpVZZAGyoXGdzDtistdfsjb3NxidYLblpJIiqsOnyk8GkOv2e1g3meYsqxCJlwzFuRxVmzu4r6J5IiV2SNGyNxtYdRX/9k=",
+          "VAT": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAQABgBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AOqX5l6UpUlcUzHHNLEzbOaeWOKicnPFf//Z",
+          "deductible": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAQABgBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AOqX5l6UpUlcUzHHNLEzbOaeWOKicnPFf//Z"
+        }
+      },
+      "ocr_confidence": 0.9499999999999998,
+      "is_doc_unclear": false,
+      "dependents": [
+        {
+          "id": "776",
+          "name": "Akram Kheir"
+        }
+      ],
+      "claimant_name_flag": true
+    },
+    "dirty_flags": {},
+    "access_token": ""
+  }
+]
