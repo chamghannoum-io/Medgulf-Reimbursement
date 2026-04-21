@@ -14,6 +14,19 @@ const STAGE_TO_WIDGET_TYPE = {
   COMPLETED:            'success_card',
 }
 
+// Maps data.type from the new response shape → widget message type
+const RESPONSE_TYPE_TO_WIDGET_TYPE = {
+  benefit_selector: 'benefit_type_selector',
+  doc_upload:       'document_upload',
+  document_upload:  'document_upload',
+  ocr_review:       'extracted_form',
+  iban_input:       'iban_input',
+  summary_card:     'summary_card',
+  financial_summary:'financial_summary',
+  success_card:     'success_card',
+  // 'text' intentionally omitted — plain text has no widget
+}
+
 export function useClaimFlow() {
   const { state, dispatch } = useClaimContext()
   const { session } = useSession()
@@ -45,7 +58,7 @@ export function useClaimFlow() {
 
     if (!data) return
 
-    const { output, updated_stage, updated_claim } = data
+    const { output, updated_stage, updated_claim, response_type } = data
 
     // 1. Store access_token if provided
     if (access_token) {
@@ -83,9 +96,10 @@ export function useClaimFlow() {
     }
 
     // 5. Widget bubble for interactive stages
-    const widgetType = STAGE_TO_WIDGET_TYPE[updated_stage]
+    // Prefer updated_stage (legacy) then response_type (new shape) for widget routing
+    const widgetType = STAGE_TO_WIDGET_TYPE[updated_stage] ?? RESPONSE_TYPE_TO_WIDGET_TYPE[response_type]
     if (widgetType) {
-      if (updated_stage === 'COMPLETED') {
+      if (updated_stage === 'COMPLETED' || response_type === 'success_card') {
         dispatch({
           type: 'SET_SUBMITTED',
           payload: {

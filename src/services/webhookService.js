@@ -4,6 +4,7 @@ const CLAIM_CHAT_PATH = import.meta.env.VITE_INITIAL_WEBHOOK_PATH
 // In production the same relative path works if the reverse proxy is configured,
 // or swap these for the full URL if the prod server handles CORS natively.
 const FILE_SERVICE_URL = '/file-service/api/upload'
+const FILE_SERVICE_TOKEN = import.meta.env.VITE_FILE_SERVICE_TOKEN
 const FILE_DOWNLOAD_BASE = 'https://api.mg-test.iohealth.com/file-service/api/download'
 const TIMEOUT_MS = 30_000
 const NO_TIMEOUT  = 0          // used for OCR — duration is unpredictable
@@ -32,10 +33,12 @@ function normalisedResponse(raw) {
   const outer = Array.isArray(raw) ? raw[0] : raw
   let data = outer?.data ?? outer
 
-  // Plain-text response shape: { status, data: { type: 'text', output: { text: '...' } } }
-  // Normalise to the standard shape so handleResponse can treat it as assistant_text.
-  if (data?.type === 'text' && data?.output?.text) {
-    data = { output: data.output.text }
+  // New universal shape: { status, data: { type, output: { text } } }
+  // output.text is either a plain string or stringified JSON.
+  // Hoist type → response_type so handleResponse can use it for widget routing,
+  // and flatten output.text → output so the rest of the pipeline is unchanged.
+  if (data?.output?.text !== undefined) {
+    data = { ...data, response_type: data.type, output: data.output.text }
   }
 
   // access_token lives inside data (the inner payload), not on the outer envelope
@@ -173,7 +176,7 @@ export async function uploadFile(file, token) {
 
   const res = await fetch(FILE_SERVICE_URL, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token || FILE_SERVICE_TOKEN}` },
     body: formData,
   })
 
